@@ -1,0 +1,76 @@
+﻿<Controls:MetroWindow
+    x:Class="Zippy.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Zippy;assembly=Zippy"
+        xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="600" Width="825" Loaded="Window_Loaded" ResizeMode="CanResizeWithGrip">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="29"/>
+            <RowDefinition Height="443*"/>
+            <RowDefinition Height="9*"/>
+            <RowDefinition Height="88*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="107*" />
+            <ColumnDefinition Width="3" />
+            <ColumnDefinition Width="149*" />
+        </Grid.ColumnDefinitions>
+        <ListView x:Name="listView" Grid.Column="2" MouseDoubleClick="listView_MouseDoubleClick" MouseMove="listView_MouseMove" PreviewMouseLeftButtonDown="listView_PreviewMouseLeftButtonDown" Grid.Row="1">
+            <ListView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="_Zip" Click="MenuItem_Click" InputGestureText="Ctrl + P"></MenuItem>
+                    <MenuItem x:Name="Gzip" Header="_Gzip" Click="tar_Click" InputGestureText="Ctrl + T"></MenuItem>
+                    <Separator></Separator>
+                    <MenuItem Name="open" Header="_Show in explorer" Click="open_Click" InputGestureText="Ctrl + O"></MenuItem>
+                    <MenuItem Name="delete" Header="_Delete" Click="delete_Click" InputGestureText="DEL" ></MenuItem>
+                </ContextMenu>
+            </ListView.ContextMenu>
+            <ListView.View>
+                <GridView x:Name="columns">
+                    <GridViewColumn Header="-" Width="40">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Image Source="{Binding Icon}" Height="18" />
+                                </Grid>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="150"/>
+                    <GridViewColumn Header="Path" DisplayMemberBinding="{Binding Path}" Width="250"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <GridSplitter x:Name="gridSplitter1" Grid.Row="2" Grid.ColumnSpan="3" HorizontalAlignment="Stretch" Margin="0,3"/>
+
+        <GridSplitter x:Name="gridSplitter" HorizontalAlignment="Stretch" Grid.Column="1" Grid.RowSpan="4"/>
+        <TreeView x:Name="foldersItem" Grid.Column="0" SelectedItemChanged="foldersItem_SelectedItemChanged" Grid.RowSpan="3" Grid.Row="1">
+            <TreeView.Resources>
+                <Style TargetType="{x:Type TreeViewItem}">
+                    <Setter Property="HeaderTemplate">
+                        <Setter.Value>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding}" Margin="5,0" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </TreeView.Resources>
+        </TreeView>
+        <Grid x:Name="frame" Grid.Column="2" Grid.Row="3" Margin="2,0,0,0">
+            <Button x:Name="back" IsEnabled="False" Content="Back" HorizontalAlignment="Left" VerticalAlignment="Top" Width="50" RenderTransformOrigin="0.413,-0.15" Height="25" Click="back_Click"/>
+        </Grid>
+        <TextBox x:Name="pathBox" TextWrapping="Wrap" Text="C:\" Margin="0,0,30,1"/>
+        <Button x:Name="goto" FontFamily="Segoe MDL2 Assets" Content="&#xE8FB;" HorizontalAlignment="Right" Width="30" Click="goto_Click"/>
+        <Button x:Name="folder_up" Content="&#xE72B;" FontFamily="Segoe MDL2 Assets" Grid.Column="2" HorizontalAlignment="Left" Width="29" Click="folder_up_Click"/>
+        <ProgressBar x:Name="loading" Grid.Column="2" Margin="34,0,0,0" VerticalAlignment="Top" Height="28"/>
+    </Grid>
+</Controls:MetroWindow>
