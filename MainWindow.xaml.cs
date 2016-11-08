@@ -23,6 +23,9 @@ using System.Windows.Shapes;
 using System.Diagnostics;
 using SharpCompress.Writers;
 using SharpCompress.Archives.Tar;
+using SharpCompress.Archives.GZip;
+using SharpCompress.Common;
+using System.Threading;
 
 namespace Zippy
 {
@@ -36,8 +39,8 @@ namespace Zippy
         public MainWindow()
         {
             InitializeComponent();
+            tmp = new DirectoryInfo(System.IO.Path.GetTempPath()).Parent.FullName + "\\Zippy\\";
         }
-
         private void Window_Loaded(Object sender, RoutedEventArgs e)
         {
             foreach (string s in Directory.GetLogicalDrives())
@@ -56,7 +59,19 @@ namespace Zippy
             item2.FontWeight = FontWeights.Normal;
             item2.Items.Add(dummyNode);
             item2.Expanded += new RoutedEventHandler(folder_Expanded);
+            item2.IsSelected = true;
             foldersItem.Items.Add(item2);
+            var args = Environment.GetCommandLineArgs();
+            if (args.Length > 1)
+            {
+                string path = args[1];
+                if (File.Exists(path))
+                {
+                    MessageBox.Show(path);
+                    type = IsArchive(path);
+                    OpenArchive(path);
+                }
+            }
         }
         void folder_Expanded(object sender, RoutedEventArgs e)
         {
@@ -97,22 +112,10 @@ namespace Zippy
         }
         private void foldersItem_SelectedItemChanged(Object sender, RoutedPropertyChangedEventArgs<Object> e)
         {
-            try
-            {
-                string path = ((TreeViewItem)e.NewValue).Tag.ToString();
-                pathBox.Text = path;
-                listView.Items.Clear();
-                Directory.GetDirectories(path).ToList().ForEach(new Action<string>(delegate (string s)
-                {
-                    listView.Items.Add(new FileItem(s) { Name = new FileInfo(s).Name, Path = s });
-                }));
-                Directory.GetFiles(path).ToList().ForEach(new Action<string>(delegate (string s)
-                {
-                    listView.Items.Add(new FileItem(s) { Name = new FileInfo(s).Name, Path = s });
-                }));
-            }
-            catch { }
+            ArchiveMode = false;
+            Refresh();
         }
+
         public static ImageSource GetIcon(string strPath, bool bSmall)
         {
             Interop.SHFILEINFO info = new Interop.SHFILEINFO(true);
@@ -140,18 +143,18 @@ namespace Zippy
             public FileItem(string path)
             {
                 Icon = Imaging.CreateBitmapSourceFromHBitmap(
-          ImageUtilities.GetRegisteredIcon(path).ToBitmap().GetHbitmap(), IntPtr.Zero, Int32Rect.Empty,
-          BitmapSizeOptions.FromEmptyOptions()); ;
-
+                ImageUtilities.GetRegisteredIcon(path).ToBitmap().GetHbitmap(), IntPtr.Zero, Int32Rect.Empty,
+                BitmapSizeOptions.FromEmptyOptions());
             }
-            public FileItem()
+            public FileItem(ImageSource src)
             {
-                Icon = GetIcon("", false);
+                Icon = src;
             }
             public ImageSource Icon { get; set; }
             public string Name { get; set; }
             public string Path { get; set; }
             public object Entry { get; set; }
+            public Boolean isDir { get; set; }
         }
         private bool _ArchiveMode = false;
         public Boolean ArchiveMode {
@@ -163,91 +166,132 @@ namespace Zippy
         }
         private ArchiveTypes type;
         private Point start;
+        private String tmp;
+        private String archivePath;
 
         private void listView_MouseDoubleClick(Object sender, MouseButtonEventArgs e)
         {
             var item = ((FileItem)((ListView)sender).SelectedItem);
             if (ArchiveMode)
             {
-                if (type == ArchiveTypes.Zip)
+                if (!item.isDir)
                 {
-                    var Entry = (ZipArchiveEntry)item.Entry;
-                    string toPath = System.IO.Path.GetTempPath() + "\\" + Entry.Key;
-                    Entry.WriteToFile(toPath);
-                    Process.Start(toPath);
+                    var i = (IArchiveEntry)item.Entry;
+
+                    string path = tmp + DateTime.Now.ToFileTime().ToString();
+                    Directory.CreateDirectory(path);
+                    i.WriteToDirectory(path, new SharpCompress.Readers.ExtractionOptions() { ExtractFullPath = true });
+                    Process.Start(path + "\\" + i.Key);
                 }
-                if (type == ArchiveTypes.RAR)
+                else
                 {
-                    var Entry = (RarArchiveEntry)item.Entry;
-                    string toPath = System.IO.Path.GetTempPath() + "\\" + Entry.Key;
-                    Entry.WriteToFile(toPath);
-                    Process.Start(toPath);
-                }
-                if (type == ArchiveTypes.SevenZip)
-                {
-                    var Entry = (SevenZipArchiveEntry)item.Entry;
-                    string toPath = System.IO.Path.GetTempPath() + "\\" + Entry.Key;
-                    Entry.WriteToFile(toPath);
-                    Process.Start(toPath);
-                }
-                if (type == ArchiveTypes.Gzip)
-                {
-                    var Entry = (TarArchiveEntry)item.Entry;
-                    string toPath = System.IO.Path.GetTempPath() + "\\" + Entry.Key;
-                    Entry.WriteToFile(toPath);
-                    Process.Start(toPath);
+                    var i = (IArchiveEntry)item.Entry;
+                    var archive = i.Archive;
+                    string path = tmp + DateTime.Now.ToFileTime().ToString();
+                    Directory.CreateDirectory(path);
+
+                    foreach (var entry in archive.Entries)
+                    {
+                        if (!entry.IsDirectory)
+                        {
+                            Console.WriteLine(entry.Key);
+                            entry.WriteToDirectory(path, new SharpCompress.Readers.ExtractionOptions() { ExtractFullPath = true });
+                        }
+                    }
+                    ArchiveMode = false;
+                    Process.Start(path);
                 }
             }
             else
             {
                 string path = item.Path.ToString();
                 type = IsArchive(path);
-                if (Directory.Exists(path))
-                {
-                    SelectFolder(path);
-                }
-                else if (type != ArchiveTypes.None)
-                {
-                    listView.Items.Clear();
-                    if (type == ArchiveTypes.Zip)
-                    {
-                        var archive = ZipArchive.Open(path);
-                        archive.Entries.Select(i => new KeyValuePair<string, object>(i.Key, i)).ToList().ForEach(new Action<KeyValuePair<string, object>>(delegate (KeyValuePair<string, object> values)
-                        {
-                            listView.Items.Add(new FileItem() { Name = values.Key, Entry = values.Value });
-                        }));
-                    }
-                    else if (type == ArchiveTypes.RAR)
-                    {
-                        var archive = RarArchive.Open(path);
-                        archive.Entries.Select(i => new KeyValuePair<string, object>(i.Key, i)).ToList().ForEach(new Action<KeyValuePair<string, object>>(delegate (KeyValuePair<string, object> values)
-                        {
-                            listView.Items.Add(new FileItem() { Name = values.Key, Entry = values.Value });
-                        }));
-                    }
-                    else if (type == ArchiveTypes.SevenZip)
-                    {
-                        var archive = SevenZipArchive.Open(path);
-                        archive.Entries.Select(i => new KeyValuePair<string, object>(i.Key, i)).ToList().ForEach(new Action<KeyValuePair<string, object>>(delegate (KeyValuePair<string, object> values)
-                        {
-                            listView.Items.Add(new FileItem() { Name = values.Key, Entry = values.Value });
-                        }));
-                    }
-                    else if (type == ArchiveTypes.Gzip)
-                    {
-                        var archive = TarArchive.Open(path);
-                        archive.Entries.Select(i => new KeyValuePair<string, object>(i.Key, i)).ToList().ForEach(new Action<KeyValuePair<string, object>>(delegate (KeyValuePair<string, object> values)
-                        {
-                            listView.Items.Add(new FileItem() { Name = values.Key, Entry = values.Value });
-                        }));
-                    }
-                    ArchiveMode = true;
-                }
-                else
-                {
-                    Process.Start(path);
-                }
+                OpenArchive(path);
             }
+        }
+
+        private void OpenArchive(string path)
+        {
+            if (Directory.Exists(path))
+            {
+                SelectFolder(path);
+            }
+            else if (type != ArchiveTypes.None)
+            {
+                listView.Items.Clear();
+                var archive = ArchiveFactory.Open(path);
+                archivePath = path;
+                archive.Entries.ToList().ForEach(new Action<IArchiveEntry>(delegate (IArchiveEntry values)
+                {
+                    string extension = "." + values.Key.Split('.').Last();
+                    bool isDir = false;
+                    if (values.IsDirectory)
+                        isDir = true;
+                    var exePath = IconManager.FindIconForFilename(extension, false);
+                    listView.Items.Add(new FileItem(exePath) { Name = values.Key, Entry = values, isDir = isDir });
+                }));
+                ArchiveMode = true;
+            }
+            else
+            {
+                Process.Start(path);
+            }
+        }
+
+        private void ExtractionBegin(Object sender, ReaderExtractionEventArgs<IEntry> e)
+        {
+
+        }
+
+        public static string Extension_GetExePath(string strExtension)
+        {
+            string strExePath = "C:\\Windows";
+            try
+            {
+                //We need a leading dot, so add it if it's missing.
+                if (!strExtension.StartsWith(".")) strExtension = "." + strExtension;
+
+                //Get the class-name associated with the passed extension
+                Microsoft.Win32.RegistryKey rkClassName
+                   = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(strExtension);
+                //Exit, if not found
+                if (rkClassName == null) return string.Empty;
+                string strClassName = rkClassName.GetValue("").ToString();
+
+                //Get the shell-command for the retrieved executable 
+                //This key is found at HKCR\[ClassName]\shell\open\command\(Default)
+                //One or more of the paths may be missing, so each of them is being tested
+                //separately.
+                Microsoft.Win32.RegistryKey rkShellCommandRoot
+                   = Microsoft.Win32.Registry.ClassesRoot.OpenSubKey(strClassName);
+                if (rkShellCommandRoot == null) return string.Empty;
+
+                Microsoft.Win32.RegistryKey rkShell
+                   = rkShellCommandRoot.OpenSubKey("shell");
+                if (rkShell == null) return string.Empty;
+
+                Microsoft.Win32.RegistryKey rkOpen
+                   = rkShell.OpenSubKey("open");
+                if (rkOpen == null) return string.Empty;
+
+                Microsoft.Win32.RegistryKey rkCommand
+                   = rkOpen.OpenSubKey("command");
+                if (rkCommand == null) return string.Empty;
+
+                string strShellCommand = rkCommand.GetValue("").ToString();
+
+                //The shell-command may contain additional parameters and may be wrapped in double quotes,
+                //so parse out the exe-path.
+                if (strShellCommand.StartsWith(@""))
+                    //Extract path (wrapped in double-quotes)
+                    strExePath = strShellCommand.Split('"')[1];
+                else
+                    //Extract first word (until first space char)
+                    strExePath = strShellCommand.Split(' ')[0];
+
+            }
+            catch { }
+            return strExePath;
         }
 
         private void MenuItem_Click(Object sender, RoutedEventArgs e)
@@ -279,11 +323,19 @@ namespace Zippy
                     }
                     this.Cursor = Cursors.Wait;
                     loading.IsIndeterminate = true;
-                    var open = File.OpenWrite(new FileInfo(p).Directory + "\\" + ((FileItem)items[0]).Name.Split('.')[0] + ".zip");
-                    ar.SaveTo(open);
-                    open.Close();
-                    this.Cursor = Cursors.Arrow;
-                    loading.IsIndeterminate = false;
+                    Thread thread = new Thread(delegate ()
+                     {
+                         var open = File.OpenWrite(new FileInfo(p).Directory + "\\" + ((FileItem)items[0]).Name.Split('.')[0] + ".zip");
+                         ar.SaveTo(open);
+                         open.Close();
+                         this.Dispatcher.Invoke(delegate ()
+                         {
+                             this.Cursor = Cursors.Arrow;
+                             loading.IsIndeterminate = false;
+                         });
+                     });
+                    thread.Start();
+
                 }
                 else if (type == ArchiveTypes.Gzip)
                 {
@@ -408,16 +460,34 @@ namespace Zippy
             var items = ((listView).SelectedItems);
             if (items.Count > 0)
             {
-                foreach (FileItem item in items)
+                if (ArchiveMode)
                 {
-                    string path = item.Path;
-                    if (Directory.Exists(path))
+                    foreach (FileItem item in items)
                     {
-                        Directory.Delete(path);
+                        if (type == ArchiveTypes.Zip)
+                        {
+                            var x = (ZipArchiveEntry)item.Entry;
+                            var Archive = (ZipArchive)x.Archive;
+                            Archive.RemoveEntry(x);
+                            Archive.SaveTo(archivePath.Replace(".zip", "_.zip"), CompressionType.Deflate);
+                            ArchiveMode = false;
+                            back.IsEnabled = false;
+                        }
                     }
-                    else
+                }
+                else
+                {
+                    foreach (FileItem item in items)
                     {
-                        File.Delete(path);
+                        string path = item.Path;
+                        if (Directory.Exists(path))
+                        {
+                            Directory.Delete(path);
+                        }
+                        else
+                        {
+                            File.Delete(path);
+                        }
                     }
                 }
                 Refresh();
@@ -425,27 +495,38 @@ namespace Zippy
         }
         public void Refresh()
         {
-            string path = ((TreeViewItem)foldersItem.SelectedItem).Tag.ToString();
-            pathBox.Text = path;
-            listView.Items.Clear();
-            Directory.GetDirectories(path).ToList().ForEach(new Action<string>(delegate (string s)
+            try
             {
-                listView.Items.Add(new FileItem(s) { Name = new FileInfo(s).Name, Path = s });
-            }));
-            Directory.GetFiles(path).ToList().ForEach(new Action<string>(delegate (string s)
-            {
-                listView.Items.Add(new FileItem(s) { Name = new FileInfo(s).Name, Path = s });
-            }));
+                string path = ((TreeViewItem)foldersItem.SelectedItem).Tag.ToString();
+                pathBox.Text = path;
+                listView.Items.Clear();
+                Directory.GetDirectories(path).Where(d => !new DirectoryInfo(d).Attributes.HasFlag(FileAttributes.Hidden)).ToList().ForEach(new Action<string>(delegate (string s)
+                {
+                    listView.Items.Add(new FileItem(s) { Name = new FileInfo(s).Name, Path = s });
+                }));
+                Directory.GetFiles(path).ToList().ForEach(new Action<string>(delegate (string s)
+                {
+                    listView.Items.Add(new FileItem(s) { Name = new FileInfo(s).Name, Path = s });
+                }));
+            }
+            catch { }
         }
 
         private void folder_up_Click(Object sender, RoutedEventArgs e)
         {
             try
             {
-                string path = pathBox.Text;
-                string parentPath = new DirectoryInfo(path).Parent.FullName;
-                SelectFolder(parentPath);
-
+                if (ArchiveMode)
+                {
+                    ArchiveMode = false;
+                    SelectFolder(pathBox.Text);
+                }
+                else
+                {
+                    string path = pathBox.Text;
+                    string parentPath = new DirectoryInfo(path).Parent.FullName;
+                    SelectFolder(parentPath);
+                }
             }
             catch { }
         }
