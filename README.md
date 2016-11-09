@@ -6,7 +6,8 @@ Zippy windows zip tool
 - Supports decompression for: Rar, .7z, zip, zipx and tar
 - Supports zip compression using deflate or lzma!
 - Folder/file browsing made easy
-![Install now (EN)](https://github.com/danielverh/Zippy/raw/master/Setup%20Files/en/Zippy.exe)
+
+[Install now (EN)](https://github.com/danielverh/Zippy/raw/master/Setup%20Files/en/Zippy.exe)
 
 ![Example 1](http://i.imgur.com/pwuxXaX.png)
 ![Example 2](http://i.imgur.com/UVOzAQO.png)
