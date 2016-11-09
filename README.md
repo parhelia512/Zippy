@@ -9,6 +9,7 @@ Zippy windows zip tool
 - Folder/file browsing made easy
 
 ## Performance:
+In this example you can see the results when compressing the release files:
 | Type          | normal .zip | normal .zipx | zippy .zip (lzma) | Uncompressed |
 |---------------|-------------|--------------|-------------------|--------------|
 | Size          | 3.4 mb      | 5.5 mb       | **2.1 mb**        | 9.16 mb      |
