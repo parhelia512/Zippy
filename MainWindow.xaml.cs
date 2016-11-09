@@ -66,7 +66,6 @@ namespace Zippy
             item2.IsSelected = true;
             foldersItem.Items.Add(item2);
             var args = Environment.GetCommandLineArgs();
-            args = new string[] {"","-a", @"C:\Users\danie\Documents\test\gs.pdf" };
             if (args.Length > 1)
             {
                 string path = args[1];
