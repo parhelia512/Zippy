@@ -115,8 +115,6 @@ namespace Zippy
                     saveAs.DefaultExtension = ".zip";
                     if(saveAs.ShowDialog() == CommonFileDialogResult.Ok)
                     {
-                        this.IsEnabled = false;
-
                         var archive = ZipArchive.Create();
                         var files = args.Skip(2);
                         string tmp = temporaryDirectory + "\\" + DateTime.Now.Ticks;
@@ -142,7 +140,7 @@ namespace Zippy
                             Directory.Delete(tmp, true);
                         }
                         catch { }
-                        this.IsEnabled = true;
+                        this.Close();
                     }
                 }
             }
