@@ -73,6 +73,6 @@ namespace Zippy
     }
     public enum ArchiveTypes { RAR, Zip, SevenZip,
         None,
-        Gzip
+        Deflate
     }
 }

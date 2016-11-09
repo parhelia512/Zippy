@@ -6,10 +6,32 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Zippy;assembly=Zippy"
         xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
+     xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
+     TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+     TextElement.FontWeight="Regular"
+     TextElement.FontSize="13"
+     TextOptions.TextFormattingMode="Ideal"
+     TextOptions.TextRenderingMode="Auto"
+     Background="{DynamicResource MaterialDesignPaper}"
+     FontFamily="{DynamicResource MaterialDesignFont}"
         mc:Ignorable="d"
         Icon="Zippy.ico"
-        Title="MainWindow" Height="600" Width="825" Loaded="Window_Loaded" ResizeMode="CanResizeWithGrip">
-
+        Title="Zippy" Height="600" Width="825" Loaded="Window_Loaded" ResizeMode="CanResizeWithGrip">
+    <Window.CommandBindings>
+        <CommandBinding x:Name="newZip" Command="New" Executed="newZip_Executed" CanExecute="OutArchive_CanExecute" />
+        <CommandBinding x:Name="newZipG" Command="local:CustomCommands.NewGZip" Executed="newZipG_Executed" CanExecute="OutArchive_CanExecute"  />
+        <CommandBinding x:Name="delete" Command="Delete" Executed="delete_Executed"/>
+        <CommandBinding x:Name="extractTo" Command="local:CustomCommands.ExtractTo" CanExecute="extractTo_CanExecute" Executed="extractTo_Executed"/>
+        <CommandBinding x:Name="open" Command="Open" Executed="open_Executed" CanExecute="OutArchive_CanExecute"/>
+    </Window.CommandBindings>
+    <Window.InputBindings>
+        <KeyBinding Key="N" Modifiers="Ctrl" Command="New"/>
+        <KeyBinding Key="N" Modifiers="Ctrl+Shift" Command="SaveAs"/>
+        <KeyBinding Key="T" Modifiers="Ctrl" Command="local:CustomCommands.ExtractTo"/>
+        <KeyBinding Key="D" Modifiers="Ctrl" Command="local:CustomCommands.NewGZip"/>
+        <KeyBinding Key="O" Modifiers="Ctrl" Command="Open"/>
+        <KeyBinding Key="Delete" Command="Delete"/>
+    </Window.InputBindings>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="37"/>
@@ -26,11 +48,13 @@
         <ListView x:Name="listView" Grid.Column="2" MouseDoubleClick="listView_MouseDoubleClick" MouseMove="listView_MouseMove" PreviewMouseLeftButtonDown="listView_PreviewMouseLeftButtonDown" Grid.Row="1">
             <ListView.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="_Zip" Click="MenuItem_Click" InputGestureText="Ctrl + P"></MenuItem>
-                    <MenuItem x:Name="Gzip" Header="_Gzip" Click="tar_Click" InputGestureText="Ctrl + T"></MenuItem>
+                    <MenuItem Header="_Zip (Recommended)" Command="New" InputGestureText="Ctrl + N"></MenuItem>
+                    <MenuItem x:Name="Deflate" Header="Zip Deflate" Command="local:CustomCommands.NewGZip" InputGestureText="Ctrl + D"></MenuItem>
                     <Separator></Separator>
-                    <MenuItem Name="open" Header="_Show in explorer" Click="open_Click" InputGestureText="Ctrl + O"></MenuItem>
-                    <MenuItem Name="delete" Header="_Delete" Click="delete_Click" InputGestureText="DEL" ></MenuItem>
+                    <MenuItem x:Name="Extract" Header="Extract" Command="local:CustomCommands.ExtractTo" InputGestureText="Ctrl + T"></MenuItem>
+                    <Separator></Separator>
+                    <MenuItem Name="open_m" Header="_Show in explorer" Command="Open" InputGestureText="Ctrl + O"></MenuItem>
+                    <MenuItem Name="delete_m" Header="_Delete" Command="Delete" InputGestureText="Delete" ></MenuItem>
                 </ContextMenu>
             </ListView.ContextMenu>
             <ListView.View>
@@ -51,30 +75,22 @@
         </ListView>
 
         <GridSplitter x:Name="gridSplitter" HorizontalAlignment="Stretch" Grid.Column="1" Grid.RowSpan="4"/>
-        <Grid x:Name="frame" Grid.Column="2" Grid.Row="3" Margin="2,0,0,0">
-            <Button x:Name="back" IsEnabled="False" Content="Back" HorizontalAlignment="Left" VerticalAlignment="Top" Width="105" RenderTransformOrigin="0.413,-0.15" Height="35" Click="back_Click"/>
-        </Grid>
+        <md:Card x:Name="frame" Grid.Column="2" Grid.Row="3" Margin="5,5,5,5" VerticalAlignment="Stretch">
+            <Button x:Name="back" IsEnabled="False" Content="Back" Height="Auto" Click="back_Click" Margin="10,10,10,10"/>
+        </md:Card>
         <GridSplitter x:Name="gridSplitter1" Grid.Row="2" HorizontalAlignment="Stretch" Margin="0,3" Grid.Column="2"/>
 
-        <TextBox x:Name="pathBox" TextWrapping="Wrap" Text="C:\" Margin="0,0,50,1"/>
-        <Button x:Name="goto" Content="&#xE71E;" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Right" Width="50" Click="goto_Click" Height="Auto"/>
-        <Button x:Name="folder_up" Content="&#xE72B;" FontFamily="Segoe MDL2 Assets" Grid.Column="2" HorizontalAlignment="Left" Width="46" Click="folder_up_Click" Height="Auto" Margin="0,0,0,1"/>
+        <TextBox x:Name="pathBox" TextWrapping="Wrap" Text="C:\" Margin="0,0,50,1" FontSize="20"/>
+        <Button x:Name="goto" Content="&#xE71E;" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Right" Width="48" Click="goto_Click" Height="Auto" Style="{DynamicResource MaterialDesignFlatButton}" Margin="0,2,2,3"/>
+        <Button x:Name="folder_up" Content="&#xE72B;" FontFamily="Segoe MDL2 Assets" Grid.Column="2" HorizontalAlignment="Left" Width="41" Click="folder_up_Click" Height="Auto" Style="{DynamicResource MaterialDesignFlatButton}"/>
         <ProgressBar x:Name="loading" Grid.Column="2" Margin="46,0,0,1"/>
-        <TreeView x:Name="foldersItem" Grid.Column="0" SelectedItemChanged="foldersItem_SelectedItemChanged" Grid.RowSpan="3" Grid.Row="1">
+
+        <TreeView VirtualizingPanel.VirtualizationMode="Recycling" x:Name="foldersItem" Grid.Column="0" SelectedItemChanged="foldersItem_SelectedItemChanged" Grid.RowSpan="3" Grid.Row="1">
             <TreeView.Resources>
-                <Style TargetType="{x:Type TreeViewItem}">
-                    <Setter Property="HeaderTemplate">
-                        <Setter.Value>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal">
-                                    <Image Source="{StaticResource folderIcon}" Width="16" />
-                                    <TextBlock Text="{Binding}" Margin="5,0" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
+
             </TreeView.Resources>
         </TreeView>
+
+
     </Grid>
 </Controls:MetroWindow>
