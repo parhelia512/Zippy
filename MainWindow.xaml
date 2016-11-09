@@ -51,7 +51,7 @@
                     <MenuItem Header="_Zip (Recommended)" Command="New" InputGestureText="Ctrl + N"></MenuItem>
                     <MenuItem x:Name="Deflate" Header="Zip Deflate" Command="local:CustomCommands.NewGZip" InputGestureText="Ctrl + D"></MenuItem>
                     <Separator></Separator>
-                    <MenuItem x:Name="Extract" Header="Extract" Command="local:CustomCommands.ExtractTo" InputGestureText="Ctrl + T"></MenuItem>
+                    <MenuItem x:Name="Extract" Header="extract" Command="local:CustomCommands.ExtractTo" InputGestureText="Ctrl + T"></MenuItem>
                     <Separator></Separator>
                     <MenuItem Name="open_m" Header="_Show in explorer" Command="Open" InputGestureText="Ctrl + O"></MenuItem>
                     <MenuItem Name="delete_m" Header="_Delete" Command="Delete" InputGestureText="Delete" ></MenuItem>

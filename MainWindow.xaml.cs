@@ -19,6 +19,8 @@ using SharpCompress.Common;
 using System.Threading;
 using MahApps.Metro.Controls;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using System.Collections.Generic;
+using Zippy.Utils;
 
 namespace Zippy
 {
@@ -32,7 +34,7 @@ namespace Zippy
         public MainWindow()
         {
             InitializeComponent();
-            tmp = new DirectoryInfo(System.IO.Path.GetTempPath()).Parent.FullName + "\\Zippy\\";
+            temporaryDirectory = new DirectoryInfo(System.IO.Path.GetTempPath()).Parent.FullName + "\\Zippy\\";
         }
         public ImageSource BmtoImgSource(System.Drawing.Bitmap source)
         {
@@ -64,18 +66,120 @@ namespace Zippy
             item2.IsSelected = true;
             foldersItem.Items.Add(item2);
             var args = Environment.GetCommandLineArgs();
+            args = new string[] {"","-a", @"C:\Users\danie\Documents\test\gs.pdf" };
             if (args.Length > 1)
             {
                 string path = args[1];
                 if (File.Exists(path))
                 {
-                    MessageBox.Show(path);
                     type = IsArchive(path);
-                    OpenArchive(path);
+                    if(type == ArchiveTypes.None)
+                    {
+                        string parent = new FileInfo(path).Directory.FullName;
+                    }
+                    else
+                    {
+                        OpenArchive(path);
+                    }
+                }
+                else if (Directory.Exists(path))
+                {
+                    var info = new DirectoryInfo(path);
+                    Zip(ArchiveTypes.Zip, null, new List<FileItem>() { new FileItem(path) { isDir = true, Path = path, Name = info.Name } }, true);
+                }
+                else if (path == "-e")
+                {
+                    path = args[2];
+                    var info = new FileInfo(path);
+                    if (IsArchive(path) != ArchiveTypes.None)
+                    {
+                        var dialog = new CommonOpenFileDialog();
+                        dialog.IsFolderPicker = true;
+
+                        var result = dialog.ShowDialog();
+                        if (result == CommonFileDialogResult.Ok)
+                        {
+                            if (Directory.Exists(dialog.FileName))
+                            {
+                                this.IsEnabled = false;
+                                ArchiveFactory.Open(path).WriteToDirectory(dialog.FileName);
+                                this.Close();
+                            }
+                        }
+                    }
+                }
+                
+                else if (path == "-a")
+                {
+                    CommonSaveFileDialog saveAs = new CommonSaveFileDialog();
+                    saveAs.Filters.Add(new CommonFileDialogFilter("Zip Archive", ".zip"));
+                    saveAs.DefaultExtension = ".zip";
+                    if(saveAs.ShowDialog() == CommonFileDialogResult.Ok)
+                    {
+                        this.IsEnabled = false;
+
+                        var archive = ZipArchive.Create();
+                        var files = args.Skip(2);
+                        string tmp = temporaryDirectory + "\\" + DateTime.Now.Ticks;
+                        Directory.CreateDirectory(tmp);
+                        foreach(var file in files)
+                        {
+                            if (File.Exists(file))
+                            {
+                                File.Copy(file, Path.Combine(tmp, new FileInfo(file).Name));
+                            }
+                            else if (Directory.Exists(file))
+                            {
+                                DirectoryCopy(file, Path.Combine(tmp, new DirectoryInfo(file).Name));
+                            }
+                        }
+                        archive.AddAllFromDirectory(tmp);
+                        if (File.Exists(saveAs.FileName))
+                            File.Delete(saveAs.FileName);
+                        
+                        archive.SaveTo(saveAs.FileName, new WriterOptions(CompressionType.LZMA));
+                        try
+                        {
+                            Directory.Delete(tmp, true);
+                        }
+                        catch { }
+                        this.IsEnabled = true;
+                    }
                 }
             }
         }
+        private void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs = true)
+        {
+            DirectoryInfo dir = new DirectoryInfo(sourceDirName);
 
+            if (!dir.Exists)
+            {
+                throw new DirectoryNotFoundException(
+                    "Source directory does not exist or could not be found: "
+                    + sourceDirName);
+            }
+
+            DirectoryInfo[] dirs = dir.GetDirectories();
+            if (!Directory.Exists(destDirName))
+            {
+                Directory.CreateDirectory(destDirName);
+            }
+
+            FileInfo[] files = dir.GetFiles();
+            foreach (FileInfo file in files)
+            {
+                string temppath = Path.Combine(destDirName, file.Name);
+                file.CopyTo(temppath, false);
+            }
+            if (copySubDirs)
+            {
+                foreach (DirectoryInfo subdir in dirs)
+                {
+                    string temppath = Path.Combine(destDirName, subdir.Name);
+                    DirectoryCopy(subdir.FullName, temppath, copySubDirs);
+                }
+            }
+        }
         private StackPanel GetStackpanel(string home)
         {
             var sp = new StackPanel();
@@ -128,29 +232,6 @@ namespace Zippy
             ArchiveMode = false;
             Refresh();
         }
-
-        public static ImageSource GetIcon(string strPath, bool bSmall)
-        {
-            Interop.SHFILEINFO info = new Interop.SHFILEINFO(true);
-            int cbFileInfo = Marshal.SizeOf(info);
-            Interop.SHGFI flags;
-            if (bSmall)
-                flags = Interop.SHGFI.Icon | Interop.SHGFI.SmallIcon | Interop.SHGFI.UseFileAttributes;
-            else
-                flags = Interop.SHGFI.Icon | Interop.SHGFI.LargeIcon | Interop.SHGFI.UseFileAttributes;
-
-            Interop.SHGetFileInfo(strPath, 256, out info, (uint)cbFileInfo, flags);
-
-            IntPtr iconHandle = info.hIcon;
-            //if (IntPtr.Zero == iconHandle) // not needed, always return icon (blank)
-            //  return DefaultImgSrc;
-            ImageSource img = Imaging.CreateBitmapSourceFromHIcon(
-                        iconHandle,
-                        Int32Rect.Empty,
-                        BitmapSizeOptions.FromEmptyOptions());
-            Interop.DestroyIcon(iconHandle);
-            return img;
-        }
         public class FileItem
         {
             public FileItem(string path)
@@ -179,7 +260,7 @@ namespace Zippy
         }
         private ArchiveTypes type;
         private System.Windows.Point start;
-        private String tmp;
+        private String temporaryDirectory;
         private String archivePath;
 
         private void listView_MouseDoubleClick(Object sender, MouseButtonEventArgs e)
@@ -191,7 +272,7 @@ namespace Zippy
                 {
                     var i = (IArchiveEntry)item.Entry;
 
-                    string path = tmp + DateTime.Now.ToFileTime().ToString();
+                    string path = temporaryDirectory + DateTime.Now.ToFileTime().ToString();
                     Directory.CreateDirectory(path);
                     i.WriteToDirectory(path, new SharpCompress.Readers.ExtractionOptions() { ExtractFullPath = true });
                     Process.Start(path + "\\" + i.Key);
@@ -200,7 +281,7 @@ namespace Zippy
                 {
                     var i = (IArchiveEntry)item.Entry;
                     var archive = i.Archive;
-                    string path = tmp + DateTime.Now.ToFileTime().ToString();
+                    string path = temporaryDirectory + DateTime.Now.ToFileTime().ToString();
                     Directory.CreateDirectory(path);
 
                     foreach (var entry in archive.Entries)
@@ -317,10 +398,17 @@ namespace Zippy
         public void zipSelected(ArchiveTypes type, WriterOptions options1 = null)
         {
             var items = ((listView).SelectedItems);
+            options1 = Zip(type, options1, items);
+        }
+
+        private WriterOptions Zip(ArchiveTypes type, WriterOptions options1, System.Collections.IList items, bool close = false)
+        {
             if (items.Count > 0)
             {
                 if (type == ArchiveTypes.Zip)
                 {
+                    if (close)
+                        this.IsEnabled = false;
                     var ar = ZipArchive.Create();
                     string p = "";
                     foreach (var x in items)
@@ -332,28 +420,38 @@ namespace Zippy
                         }
                         else
                         {
-                            ar.AddEntry(item.Name, File.Open(item.Path,FileMode.Open,FileAccess.Read));
+                            ar.AddEntry(item.Name, File.Open(item.Path, FileMode.Open, FileAccess.Read));
                         }
                         p = item.Path;
                     }
                     this.Cursor = Cursors.Wait;
                     loading.IsIndeterminate = true;
                     Thread thread = new Thread(delegate ()
-                     {
-                         var fpath = new FileInfo(p).Directory + "\\" + ((FileItem)items[0]).Name.Split('.')[0];
-                         if (File.Exists(fpath + ".zip"))
-                             fpath += "_";
-                         var open = File.Open(fpath + ".zip",FileMode.OpenOrCreate);
-                         
-                         if (options1 == null) options1 = new WriterOptions(CompressionType.LZMA);
-                         ar.SaveTo(open, options1);
-                         open.Dispose();
-                         this.Dispatcher.Invoke(delegate ()
-                         {
-                             this.Cursor = Cursors.Arrow;
-                             loading.IsIndeterminate = false;
-                         });
-                     });
+                    {
+                        var fpath = new FileInfo(p).Directory + "\\" + ((FileItem)items[0]).Name.Split('.')[0];
+                        if (File.Exists(fpath + ".zip"))
+                            fpath += "_";
+                        var open = File.Open(fpath + ".zip", FileMode.OpenOrCreate);
+
+                        if (options1 == null) options1 = new WriterOptions(CompressionType.LZMA);
+                        ar.SaveTo(open, options1);
+                        open.Dispose();
+                        this.Dispatcher.Invoke(delegate ()
+                        {
+                            this.Cursor = Cursors.Arrow;
+                            loading.IsIndeterminate = false;
+                            if (close)
+                            {
+                                string args = string.Format("/e, /select, \"{0}\"", fpath + ".zip");
+
+                                ProcessStartInfo info = new ProcessStartInfo();
+                                info.FileName = "explorer";
+                                info.Arguments = args;
+                                Process.Start(info);
+                                this.Close();
+                            }
+                        });
+                    });
                     thread.Start();
 
                 }
@@ -369,7 +467,7 @@ namespace Zippy
                             ar.AddAllFromDirectory(item.Path);
                         }
                         else
-                        {   
+                        {
                             ar.AddEntry(item.Name, File.OpenRead(item.Path));
                         }
                         p = item.Path;
@@ -393,6 +491,8 @@ namespace Zippy
                 }
                 Refresh();
             }
+
+            return options1;
         }
 
         private void back_Click(Object sender, RoutedEventArgs e)
@@ -489,10 +589,10 @@ namespace Zippy
                 {
                     listView.Items.Add(new FileItem(s) { Name = new FileInfo(s).Name, Path = s });
                 }));
-                Directory.GetFiles(path).Where(f => ! new FileInfo(f).Attributes.HasFlag(FileAttributes.Hidden)).ToList().ForEach(new Action<string>(delegate (string s)
-                {
-                    listView.Items.Add(new FileItem(s) { Name = new FileInfo(s).Name, Path = s });
-                }));
+                Directory.GetFiles(path).Where(f => !new FileInfo(f).Attributes.HasFlag(FileAttributes.Hidden)).ToList().ForEach(new Action<string>(delegate (string s)
+               {
+                   listView.Items.Add(new FileItem(s) { Name = new FileInfo(s).Name, Path = s });
+               }));
             }
             catch { }
         }
@@ -586,7 +686,7 @@ namespace Zippy
 
         private void OutArchive_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            if(!ArchiveMode && listView.SelectedIndex != -1)
+            if (!ArchiveMode && listView.SelectedIndex != -1)
             {
                 e.CanExecute = true;
             }
@@ -615,48 +715,17 @@ namespace Zippy
             {
                 foreach (FileItem item in listView.SelectedItems)
                 {
-                    var i = (IArchiveEntry)item.Entry;
-                    i.WriteToDirectory(dialog.FileName);
+                    extract(dialog.FileName, item);
                 }
                 SelectFolder(dialog.FileName);
             }
         }
-    }
-    public static class CustomCommands
-    {
-        public static RoutedCommand NewGZip = new RoutedCommand();
-        public static RoutedCommand ExtractTo = new RoutedCommand();
-    }
-    public static class ImageUtilities
-    {
-        public static System.Drawing.Icon GetRegisteredIcon(string filePath)
+
+        private static void extract(string filename, FileItem item)
         {
-            var shinfo = new SHfileInfo();
-            Win32.SHGetFileInfo(filePath, 0, ref shinfo, (uint)Marshal.SizeOf(shinfo), Win32.SHGFI_ICON | Win32.SHGFI_SMALLICON);
-            return System.Drawing.Icon.FromHandle(shinfo.hIcon);
+            var i = (IArchiveEntry)item.Entry;
+            i.WriteToDirectory(filename);
         }
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    public struct SHfileInfo
-    {
-        public IntPtr hIcon;
-        public int iIcon;
-        public uint dwAttributes;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
-        public string szDisplayName;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 80)]
-        public string szTypeName;
-    }
-
-
-    internal sealed class Win32
-    {
-        public const uint SHGFI_ICON = 0x100;
-        public const uint SHGFI_LARGEICON = 0x0; // large
-        public const uint SHGFI_SMALLICON = 0x1; // small
-
-        [System.Runtime.InteropServices.DllImport("shell32.dll")]
-        public static extern IntPtr SHGetFileInfo(string pszPath, uint dwFileAttributes, ref SHfileInfo psfi, uint cbSizeFileInfo, uint uFlags);
-    }
 }
