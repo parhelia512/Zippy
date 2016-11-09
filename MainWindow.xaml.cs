@@ -24,7 +24,6 @@ using Zippy.Utils;
 
 namespace Zippy
 {
-
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -46,6 +45,7 @@ namespace Zippy
         }
         private void Window_Loaded(Object sender, RoutedEventArgs e)
         {
+            //Add the treeview items for every drive
             foreach (string s in Directory.GetLogicalDrives())
             {
                 TreeViewItem item = new TreeViewItem();
@@ -56,6 +56,7 @@ namespace Zippy
                 item.Expanded += new RoutedEventHandler(folder_Expanded);
                 foldersItem.Items.Add(item);
             }
+            //Adds a treeview item for the home folder:
             string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             TreeViewItem item2 = new TreeViewItem();
             item2.Header = GetStackpanel(home);
@@ -65,6 +66,7 @@ namespace Zippy
             item2.Expanded += new RoutedEventHandler(folder_Expanded);
             item2.IsSelected = true;
             foldersItem.Items.Add(item2);
+            //Checks if Zippy has command line args, and if so, it uses them:
             var args = Environment.GetCommandLineArgs();
             if (args.Length > 1)
             {
