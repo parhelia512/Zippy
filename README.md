@@ -1,7 +1,7 @@
 # Zippy
 Zippy windows zip tool
 ## Features
-- Sleak Material Design
+- Sleek Material Design
 - Fast performance
 - Supports decompression for: Rar, .7z, zip, zipx and tar
 - Supports zip compression using deflate or lzma!
