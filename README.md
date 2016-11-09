@@ -8,6 +8,13 @@ Zippy windows zip tool
 - Supports zip compression using deflate or lzma!
 - Folder/file browsing made easy
 
+## Performance:
+| Type          | normal .zip | normal .zipx | zippy .zip (lzma) | Uncompressed |
+|---------------|-------------|--------------|-------------------|--------------|
+| Size          | 3.4 mb      | 5.5 mb       | **2.1 mb**        | 9.16 mb      |
+| Space savings | 62.88%      | 39.96%       | **77.07%**        | 0%           |
+|               |             |              |                   |              |
+
 ## Todo
 Windows context menu:
 - Extract here (Extracts the selected item to the current directory)
