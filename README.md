@@ -30,10 +30,8 @@ Windows context menu:
 
 [Install now (EN)](https://github.com/danielverh/Zippy/raw/master/Setup%20Files/en/Zippy.exe)
 
-![Example 1](http://i.imgur.com/pwuxXaX.png)
-![Example 2](http://i.imgur.com/UVOzAQO.png)
-![Example 3](http://i.imgur.com/O00ifVR.png)
-![Example 4](http://i.imgur.com/4h4VOBj.png)
+![Example 1](http://i.imgur.com/DO94DQc.png)
+![Example 2](http://i.imgur.com/BC8E6Q9.png)
 
 ## Licenses:
 [Zippy License](https://github.com/danielverh/Zippy/blob/master/LICENSE.md)
