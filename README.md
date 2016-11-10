@@ -16,7 +16,13 @@ In this example you can see the results when compressing the release files:
 | Size          | 3.4 mb      | 5.5 mb       | **2.1 mb**        | 9.16 mb      |
 | Space savings | 62.88%      | 39.96%       | **77.07%**        | 0%           |
 |               |             |              |                   |              |
-
+## Usage
+*Note this only works when you use the installer*
+### Compress multiple files using the explorer context menu
+1. Right click when you have selected your files and folder
+2. Click Send To -> Zippy
+3. Now select the location where you want to save the .zip.
+4. Zippy is now compressing your files!
 ## Todo
 Windows context menu:
 - Extract here (Extracts the selected item to the current directory)
