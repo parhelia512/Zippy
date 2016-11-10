@@ -6,6 +6,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Zippy;assembly=Zippy"
         xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
+    xmlns:iconPack="clr-namespace:MahApps.Metro.IconPacks;assembly=MahApps.Metro.IconPacks.Material"
      xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
      TextElement.Foreground="{DynamicResource MaterialDesignBody}"
      TextElement.FontWeight="Regular"
@@ -45,7 +46,7 @@
             <ColumnDefinition Width="149*" />
         </Grid.ColumnDefinitions>
 
-        <ListView x:Name="listView" Grid.Column="2" MouseDoubleClick="listView_MouseDoubleClick" MouseMove="listView_MouseMove" PreviewMouseLeftButtonDown="listView_PreviewMouseLeftButtonDown" Grid.Row="1">
+        <ListView x:Name="listView" Grid.Column="2" MouseDoubleClick="listView_MouseDoubleClick" MouseMove="listView_MouseMove" PreviewMouseLeftButtonDown="listView_PreviewMouseLeftButtonDown" Grid.Row="1" Grid.RowSpan="3">
             <ListView.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="_Zip (Recommended)" Command="New" InputGestureText="Ctrl + N"></MenuItem>
@@ -75,15 +76,18 @@
         </ListView>
 
         <GridSplitter x:Name="gridSplitter" HorizontalAlignment="Stretch" Grid.Column="1" Grid.RowSpan="4"/>
-        <md:Card x:Name="frame" Grid.Column="2" Grid.Row="3" Margin="5,5,5,5" VerticalAlignment="Stretch">
-            <Button x:Name="back" IsEnabled="False" Content="Back" Height="Auto" Click="back_Click" Margin="10,10,10,10"/>
-        </md:Card>
-        <GridSplitter x:Name="gridSplitter1" Grid.Row="2" HorizontalAlignment="Stretch" Margin="0,3" Grid.Column="2"/>
 
         <TextBox x:Name="pathBox" TextWrapping="Wrap" Text="C:\" Margin="0,0,50,1" FontSize="20"/>
-        <Button x:Name="goto" Content="&#xE71E;" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Right" Width="48" Click="goto_Click" Height="Auto" Style="{DynamicResource MaterialDesignFlatButton}" Margin="0,2,2,3"/>
-        <Button x:Name="folder_up" Content="&#xE72B;" FontFamily="Segoe MDL2 Assets" Grid.Column="2" HorizontalAlignment="Left" Width="41" Click="folder_up_Click" Height="Auto" Style="{DynamicResource MaterialDesignFlatButton}"/>
-        <ProgressBar x:Name="loading" Grid.Column="2" Margin="46,0,0,1"/>
+        <Button x:Name="goto" FontFamily="Segoe MDL2 Assets" HorizontalAlignment="Right" Width="48" Click="goto_Click" Height="Auto" Style="{DynamicResource MaterialDesignFlatButton}" Margin="0,2,2,3">
+            <iconPack:PackIconMaterial Kind="FileFind" />
+        </Button>
+        <Button x:Name="folder_up" FontFamily="Segoe MDL2 Assets" Grid.Column="2" HorizontalAlignment="Left" Width="51" Click="folder_up_Click" Height="Auto" Style="{DynamicResource MaterialDesignFlatButton}">
+            <Button.Content>
+                <iconPack:PackIconMaterial Kind="ArrowLeft" />
+            </Button.Content>
+        </Button>
+
+        <ProgressBar x:Name="loading" Grid.Column="2" Margin="51,0,0,1"/>
 
         <TreeView VirtualizingPanel.VirtualizationMode="Recycling" x:Name="foldersItem" Grid.Column="0" SelectedItemChanged="foldersItem_SelectedItemChanged" Grid.RowSpan="3" Grid.Row="1">
             <TreeView.Resources>

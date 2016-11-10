@@ -74,7 +74,7 @@ namespace Zippy
                 if (File.Exists(path))
                 {
                     type = IsArchive(path);
-                    if(type == ArchiveTypes.None)
+                    if (type == ArchiveTypes.None)
                     {
                         string parent = new FileInfo(path).Directory.FullName;
                     }
@@ -88,40 +88,47 @@ namespace Zippy
                     var info = new DirectoryInfo(path);
                     Zip(ArchiveTypes.Zip, null, new List<FileItem>() { new FileItem(path) { isDir = true, Path = path, Name = info.Name } }, true);
                 }
-                else if (path == "-e")
+                else if (path == "-e" || path == "-eh")
                 {
                     path = args[2];
                     var info = new FileInfo(path);
                     if (IsArchive(path) != ArchiveTypes.None)
                     {
-                        var dialog = new CommonOpenFileDialog();
-                        dialog.IsFolderPicker = true;
-
-                        var result = dialog.ShowDialog();
-                        if (result == CommonFileDialogResult.Ok)
+                        if (path == "-e")
                         {
-                            if (Directory.Exists(dialog.FileName))
+                            var dialog = new CommonOpenFileDialog();
+                            dialog.IsFolderPicker = true;
+
+                            var result = dialog.ShowDialog();
+                            if (result == CommonFileDialogResult.Ok)
                             {
-                                this.IsEnabled = false;
-                                ArchiveFactory.Open(path).WriteToDirectory(dialog.FileName);
-                                this.Close();
+                                if (Directory.Exists(dialog.FileName))
+                                {
+                                    WriteToDirectory(ArchiveFactory.Open(path), dialog.FileName);
+                                }
                             }
+                        }
+                        else
+                        {
+                            var toDir = info.Directory.FullName;
+                            WriteToDirectory(ArchiveFactory.Open(path), toDir);
+                            Process.Start(toDir);
                         }
                     }
                 }
-                
+
                 else if (path == "-a")
                 {
                     CommonSaveFileDialog saveAs = new CommonSaveFileDialog();
                     saveAs.Filters.Add(new CommonFileDialogFilter("Zip Archive", ".zip"));
                     saveAs.DefaultExtension = ".zip";
-                    if(saveAs.ShowDialog() == CommonFileDialogResult.Ok)
+                    if (saveAs.ShowDialog() == CommonFileDialogResult.Ok)
                     {
                         var archive = ZipArchive.Create();
                         var files = args.Skip(2);
                         string tmp = temporaryDirectory + "\\" + DateTime.Now.Ticks;
                         Directory.CreateDirectory(tmp);
-                        foreach(var file in files)
+                        foreach (var file in files)
                         {
                             if (File.Exists(file))
                             {
@@ -135,18 +142,20 @@ namespace Zippy
                         archive.AddAllFromDirectory(tmp);
                         if (File.Exists(saveAs.FileName))
                             File.Delete(saveAs.FileName);
-                        
-                        archive.SaveTo(saveAs.FileName, new WriterOptions(CompressionType.LZMA));
+
+                        SaveTo(archive, saveAs.FileName, new WriterOptions(CompressionType.LZMA));
                         try
                         {
                             Directory.Delete(tmp, true);
                         }
                         catch { }
-                        this.Close();
                     }
                 }
             }
         }
+
+
+
         private void DirectoryCopy(string sourceDirName, string destDirName, bool copySubDirs = true)
         {
             DirectoryInfo dir = new DirectoryInfo(sourceDirName);
@@ -254,7 +263,7 @@ namespace Zippy
             get { return _ArchiveMode; }
             set {
                 _ArchiveMode = value;
-                back.IsEnabled = value;
+                //back.IsEnabled = value;
             }
         }
         private ArchiveTypes type;
@@ -282,15 +291,7 @@ namespace Zippy
                     var archive = i.Archive;
                     string path = temporaryDirectory + DateTime.Now.ToFileTime().ToString();
                     Directory.CreateDirectory(path);
-
-                    foreach (var entry in archive.Entries)
-                    {
-                        if (!entry.IsDirectory)
-                        {
-                            Console.WriteLine(entry.Key);
-                            entry.WriteToDirectory(path, new SharpCompress.Readers.ExtractionOptions() { ExtractFullPath = true });
-                        }
-                    }
+                    WriteToDirectory(archive, path);
                     ArchiveMode = false;
                     Process.Start(path);
                 }
@@ -423,35 +424,12 @@ namespace Zippy
                         }
                         p = item.Path;
                     }
-                    this.Cursor = Cursors.Wait;
-                    loading.IsIndeterminate = true;
-                    Thread thread = new Thread(delegate ()
-                    {
-                        var fpath = new FileInfo(p).Directory + "\\" + ((FileItem)items[0]).Name.Split('.')[0];
-                        if (File.Exists(fpath + ".zip"))
-                            fpath += "_";
-                        var open = File.Open(fpath + ".zip", FileMode.OpenOrCreate);
+                    var fpath = new FileInfo(p).Directory + "\\" + ((FileItem)items[0]).Name.Split('.')[0];
+                    if (File.Exists(fpath + ".zip"))
+                        fpath += "_";
 
-                        if (options1 == null) options1 = new WriterOptions(CompressionType.LZMA);
-                        ar.SaveTo(open, options1);
-                        open.Dispose();
-                        this.Dispatcher.Invoke(delegate ()
-                        {
-                            this.Cursor = Cursors.Arrow;
-                            loading.IsIndeterminate = false;
-                            if (close)
-                            {
-                                string args = string.Format("/e, /select, \"{0}\"", fpath + ".zip");
-
-                                ProcessStartInfo info = new ProcessStartInfo();
-                                info.FileName = "explorer";
-                                info.Arguments = args;
-                                Process.Start(info);
-                                this.Close();
-                            }
-                        });
-                    });
-                    thread.Start();
+                    if (options1 == null) options1 = new WriterOptions(CompressionType.LZMA);
+                    SaveTo(ar, fpath + ".zip", options1);
 
                 }
                 else if (type == ArchiveTypes.Deflate)
@@ -517,30 +495,43 @@ namespace Zippy
         {
             if (Directory.Exists(path))
             {
-                string[] nodes = path.Split('\\');
-                var items = foldersItem.Items;
-
-                for (int i = 0; i < nodes.Length; i++)
+                listView.Visibility = Visibility.Hidden;
+                new Thread(delegate ()
                 {
-                    string node = nodes[i];
-                    if (i == 0)
+                    string[] nodes = path.Split('\\');
+                    var items = foldersItem.Items;
+                    for (int i = 0; i < nodes.Length; i++)
                     {
-                        node += "\\";
-                    }
-
-                    for (int ix = 0; ix < items.Count; ix++)
-                    {
-                        TreeViewItem obj = (TreeViewItem)items[ix];
-                        var header = ((StackPanel)obj.Header).Children[1] as TextBlock;
-                        if ((header.Text.ToString() == node))
+                        string node = nodes[i];
+                        if (i == 0)
                         {
-                            obj.IsExpanded = true;
-                            items = obj.Items;
-                            ix = 0;
-                            obj.IsSelected = true;
+                            node += "\\";
+                        }
+
+                        for (int ix = 0; ix < items.Count; ix++)
+                        {
+                            this.Invoke(delegate ()
+                            {
+                                TreeViewItem obj = null;
+                                TextBlock header = null;
+                                obj = (TreeViewItem)items[ix];
+                                header = ((StackPanel)obj.Header).Children[1] as TextBlock;
+                                if ((header.Text.ToString() == node))
+                                {
+                                    obj.IsExpanded = true;
+                                    items = obj.Items;
+                                    ix = 0;
+                                    obj.IsSelected = true;
+                                }
+                            });
+
                         }
                     }
-                }
+                    listView.Invoke(delegate ()
+                    {
+                        listView.Visibility = Visibility.Visible;
+                    });
+                }).Start();
             }
         }
 
@@ -643,7 +634,7 @@ namespace Zippy
                             Archive.RemoveEntry(x);
                             Archive.SaveTo(archivePath.Replace(".zip", "_.zip"), CompressionType.Deflate);
                             ArchiveMode = false;
-                            back.IsEnabled = false;
+                            //back.IsEnabled = false;
                         }
                     }
                 }
@@ -724,6 +715,31 @@ namespace Zippy
         {
             var i = (IArchiveEntry)item.Entry;
             i.WriteToDirectory(filename);
+        }
+        private void WriteToDirectory(IArchive archive, string dir)
+        {
+            this.IsEnabled = false;
+
+            var controller = new Dialogs.ProgressDialog();
+            controller.Title = "Busy";
+            controller.Closed += new EventHandler(delegate (object o, EventArgs e)
+            {
+                this.IsEnabled = true;
+            });
+            controller.StartExtract(archive.Entries.ToList(), dir);
+        }
+        private void SaveTo(ZipArchive archive, string fileName, WriterOptions writerOptions)
+        {
+            this.IsEnabled = false;
+
+            var controller = new Dialogs.ProgressDialog();
+            controller.Title = "Busy";
+            controller.Closed += new EventHandler(delegate (object o, EventArgs e)
+            {
+                this.IsEnabled = true;
+            });
+            controller.StartCompress(archive, fileName, writerOptions);
+
         }
     }
 
