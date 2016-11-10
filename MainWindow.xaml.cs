@@ -21,6 +21,7 @@ using MahApps.Metro.Controls;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using System.Collections.Generic;
 using Zippy.Utils;
+using Zippy.Dialogs;
 
 namespace Zippy
 {
@@ -740,6 +741,12 @@ namespace Zippy
             });
             controller.StartCompress(archive, fileName, writerOptions);
 
+        }
+
+        private void about_Click(object sender, RoutedEventArgs e)
+        {
+            About about = new About();
+            about.Show();
         }
     }
 

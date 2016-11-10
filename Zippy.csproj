@@ -116,11 +116,18 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="CustomCommands.cs" />
+    <Compile Include="Dialogs\About.xaml.cs">
+      <DependentUpon>About.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Dialogs\ProgressDialog.xaml.cs">
       <DependentUpon>ProgressDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Utils\ArchiveTypes.cs" />
     <Compile Include="Utils\ImageUtilities.cs" />
+    <Page Include="Dialogs\About.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Dialogs\ProgressDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
