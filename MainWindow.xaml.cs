@@ -36,7 +36,7 @@ namespace Zippy
     /// <summary>
     ///     Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow
     {
         private const string DummyNode = "none";
         private readonly string _temporaryDirectory;
@@ -215,7 +215,7 @@ namespace Zippy
                 foreach (var subdir in dirs)
                 {
                     var temppath = Path.Combine(destDirName, subdir.Name);
-                    DirectoryCopy(subdir.FullName, temppath, true);
+                    DirectoryCopy(subdir.FullName, temppath);
                 }
             }
         }
@@ -239,7 +239,7 @@ namespace Zippy
             item.Items.Clear();
             try
             {
-                foreach (var s in Directory.GetDirectories(item.Tag.ToString()))
+                foreach (var s in Directory.GetDirectories(item.Tag.ToString()).Where(d => new DirectoryInfo(d).Attributes.HasFlag(FileAttributes.Hidden)))
                 {
                     var subitem = new TreeViewItem
                     {
@@ -391,12 +391,12 @@ namespace Zippy
         public void ZipSelected(ArchiveTypes type, WriterOptions options1 = null)
         {
             var items = listView.SelectedItems;
-            options1 = Zip(type, options1, items);
+            Zip(type, options1, items);
         }
 
-        private WriterOptions Zip(ArchiveTypes type, WriterOptions options1, IList items, bool close = false)
+        private void Zip(ArchiveTypes type, WriterOptions options1, IList items, bool close = false)
         {
-            if (items.Count <= 0) return options1;
+            if (items.Count <= 0) return;
             switch (type)
             {
                 case ArchiveTypes.Zip:
@@ -435,17 +435,19 @@ namespace Zippy
                                 ar.AddEntry(item.Name, File.OpenRead(item.Path));
                             p = item.Path;
                         }
-                        this.Cursor = Cursors.Wait;
+                        Cursor = Cursors.Wait;
                         loading.IsIndeterminate = true;
                         var thread = new Thread(delegate ()
                         {
                             var v = new FileInfo(p).Directory + "\\" + ((FileItem)items[0]).Name.Split('.')[0] + ".zip";
-                            var _open = File.Open(v, FileMode.OpenOrCreate);
-                            ar.SaveTo(_open, new WriterOptions(CompressionType.Deflate));
-                            _open.Close();
+                            using (var _open = File.Open(v, FileMode.OpenOrCreate))
+                            {
+                                ar.SaveTo(_open, new WriterOptions(CompressionType.Deflate));
+                                _open.Close();
+                            }
                             Dispatcher.Invoke(delegate
                             {
-                                this.Cursor = Cursors.Arrow;
+                                Cursor = Cursors.Arrow;
                                 loading.IsIndeterminate = false;
                             });
                         });
@@ -462,8 +464,6 @@ namespace Zippy
                     throw new ArgumentOutOfRangeException(nameof(type), type, null);
             }
             Refresh();
-
-            return options1;
         }
 
         private void goto_Click(object sender, RoutedEventArgs e)
@@ -488,7 +488,7 @@ namespace Zippy
 
                     for (int[] ix = { 0 }; ix[0] < items.Count; ix[0]++)
                     {
-                        this.Dispatcher.Invoke(delegate
+                        Dispatcher.Invoke(delegate
                         {
                             var obj = (TreeViewItem)items[ix[0]];
 

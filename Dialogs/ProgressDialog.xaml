@@ -15,7 +15,7 @@
      Background="{DynamicResource MaterialDesignPaper}"
      FontFamily="{DynamicResource MaterialDesignFont}"
         WindowStyle="ToolWindow"
-        Title="ProgressDialog" Height="218.394" Width="415.026" ResizeMode="NoResize" Topmost="True">
+        Title="ProgressDialog" Height="218.394" Width="415.026" ResizeMode="NoResize" Topmost="False">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="79*"/>

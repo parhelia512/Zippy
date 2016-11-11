@@ -15,6 +15,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using SharpCompress.Archives.Zip;
+using SharpCompress.Readers;
 
 namespace Zippy.Dialogs
 {
@@ -36,13 +37,19 @@ namespace Zippy.Dialogs
                 entries.ToList().ForEach(delegate (IArchiveEntry entry)
                 {
                     var path = Path.Combine(dir, entry.Key.Replace("/", "\\"));
-                    entry.WriteToFile(path);
+                    var parent = new FileInfo(path).Directory?.FullName;
+                    Directory.CreateDirectory(parent);
+                    if(!entry.IsDirectory)
+                        entry.WriteToFile(path, new ExtractionOptions() { ExtractFullPath = true, Overwrite = true });
                     progress.Dispatcher.Invoke(delegate ()
                     {
                         progress.Value += 1;
                     });
                 });
-                Dispatcher.Invoke(Close);
+                Dispatcher.Invoke(delegate()
+                {
+                    Environment.Exit(0);
+                });
             });
             th.Start();
         }
