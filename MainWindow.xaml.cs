@@ -110,6 +110,7 @@ namespace Zippy
                     if (_type == ArchiveTypes.None)
                     {
                         var parent = new FileInfo(path).Directory?.FullName;
+                        SelectFolder(parent);
                     }
                     else
                     {
@@ -156,10 +157,11 @@ namespace Zippy
                             var saveAs = new CommonSaveFileDialog();
                             saveAs.Filters.Add(new CommonFileDialogFilter("Zip Archive", ".zip"));
                             saveAs.DefaultExtension = ".zip";
+                            var files = args.Skip(2).ToArray();
+                            saveAs.InitialDirectory = new FileInfo(files[0]).Directory?.FullName;
                             if (saveAs.ShowDialog() == CommonFileDialogResult.Ok)
                             {
                                 var archive = ZipArchive.Create();
-                                var files = args.Skip(2);
                                 var tmp = _temporaryDirectory + "\\" + DateTime.Now.Ticks;
                                 Directory.CreateDirectory(tmp);
                                 foreach (var file in files)
