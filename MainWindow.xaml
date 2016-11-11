@@ -1,4 +1,4 @@
-﻿<Controls:MetroWindow
+﻿<Window
     x:Class="Zippy.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -15,6 +15,8 @@
      TextOptions.TextRenderingMode="Auto"
      Background="{DynamicResource MaterialDesignPaper}"
      FontFamily="{DynamicResource MaterialDesignFont}"
+    MinHeight="300"
+    MinWidth="400"
         mc:Ignorable="d"
         Icon="Zippy.ico"
         Title="Zippy" Height="600" Width="825" Loaded="Window_Loaded" ResizeMode="CanResizeWithGrip">
@@ -105,4 +107,4 @@
 
 
     </Grid>
-</Controls:MetroWindow>
+</Window>
