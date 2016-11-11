@@ -29,25 +29,20 @@ namespace Zippy.Dialogs
         }
         public void StartExtract(List<IArchiveEntry> entries, string dir)
         {
-            this.Show();
+            Show();
             progress.Maximum = entries.Count;
-            Thread th = new Thread(delegate ()
+            var th = new Thread(delegate ()
             {
-                var i = 0;
                 entries.ToList().ForEach(delegate (IArchiveEntry entry)
                 {
-                    string path = Path.Combine(dir, entry.Key.Replace("/", "\\"));
+                    var path = Path.Combine(dir, entry.Key.Replace("/", "\\"));
                     entry.WriteToFile(path);
                     progress.Dispatcher.Invoke(delegate ()
                     {
                         progress.Value += 1;
                     });
-                    i++;
                 });
-                this.Dispatcher.Invoke(delegate ()
-                {
-                    Close();
-                });
+                Dispatcher.Invoke(Close);
             });
             th.Start();
         }
@@ -57,13 +52,10 @@ namespace Zippy.Dialogs
             Message.Text = "Compressing...";
             this.Show();
             progress.IsIndeterminate = true;
-            Thread th = new Thread(delegate ()
+            var th = new Thread(delegate ()
             {
                 archive.SaveTo(fileName, writerOptions);
-                this.Dispatcher.Invoke(delegate ()
-                {
-                    this.Close();
-                });
+                Dispatcher.Invoke(Close);
             });
             th.Start();
         }
