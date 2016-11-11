@@ -5,16 +5,16 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Zippy;assembly=Zippy"
-        xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
     xmlns:iconPack="clr-namespace:MahApps.Metro.IconPacks;assembly=MahApps.Metro.IconPacks.Material"
      xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
      TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+    Background="{DynamicResource MaterialDesignPaper}"
+     FontFamily="{DynamicResource MaterialDesignFont}"
      TextElement.FontWeight="Regular"
      TextElement.FontSize="13"
      TextOptions.TextFormattingMode="Ideal"
      TextOptions.TextRenderingMode="Auto"
-     Background="{DynamicResource MaterialDesignPaper}"
-     FontFamily="{DynamicResource MaterialDesignFont}"
     MinHeight="300"
     MinWidth="400"
         mc:Ignorable="d"
@@ -22,16 +22,15 @@
         Title="Zippy" Height="600" Width="825" Loaded="Window_Loaded" ResizeMode="CanResizeWithGrip">
     <Window.CommandBindings>
         <CommandBinding x:Name="newZip" Command="New" Executed="newZip_Executed" CanExecute="OutArchive_CanExecute" />
-        <CommandBinding x:Name="newZipG" Command="local:CustomCommands.NewGZip" Executed="newZipG_Executed" CanExecute="OutArchive_CanExecute"  />
+        <CommandBinding x:Name="newZipG" Command="Paste" Executed="newZipG_Executed" CanExecute="OutArchive_CanExecute"  />
         <CommandBinding x:Name="delete" Command="Delete" Executed="delete_Executed"/>
-        <CommandBinding x:Name="extractTo" Command="local:CustomCommands.ExtractTo" CanExecute="extractTo_CanExecute" Executed="extractTo_Executed"/>
+        <CommandBinding x:Name="ExtractFileItemTo" Command="SaveAs" CanExecute="extractTo_CanExecute" Executed="extractTo_Executed"/>
         <CommandBinding x:Name="open" Command="Open" Executed="open_Executed" CanExecute="OutArchive_CanExecute"/>
     </Window.CommandBindings>
     <Window.InputBindings>
         <KeyBinding Key="N" Modifiers="Ctrl" Command="New"/>
-        <KeyBinding Key="N" Modifiers="Ctrl+Shift" Command="SaveAs"/>
-        <KeyBinding Key="T" Modifiers="Ctrl" Command="local:CustomCommands.ExtractTo"/>
-        <KeyBinding Key="D" Modifiers="Ctrl" Command="local:CustomCommands.NewGZip"/>
+        <KeyBinding Key="T" Modifiers="Ctrl" Command="SaveAs"/>
+        <KeyBinding Key="D" Modifiers="Ctrl" Command="Paste"/>
         <KeyBinding Key="O" Modifiers="Ctrl" Command="Open"/>
         <KeyBinding Key="Delete" Command="Delete"/>
     </Window.InputBindings>
@@ -49,16 +48,16 @@
             <ColumnDefinition Width="149*" />
         </Grid.ColumnDefinitions>
 
-        <ListView x:Name="listView" Grid.Column="2" MouseDoubleClick="listView_MouseDoubleClick" MouseMove="listView_MouseMove" PreviewMouseLeftButtonDown="listView_PreviewMouseLeftButtonDown" Grid.Row="1" Grid.RowSpan="3">
+        <ListView x:Name="listView" Grid.Column="2" MouseDoubleClick="listView_MouseDoubleClick"  MouseMove="listView_MouseMove" PreviewMouseLeftButtonDown="listView_PreviewMouseLeftButtonDown" Grid.Row="1" Grid.RowSpan="3" DragLeave="listView_DragLeave">
             <ListView.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="_Zip (Recommended)" Command="New" InputGestureText="Ctrl + N"></MenuItem>
-                    <MenuItem x:Name="Deflate" Header="Zip Deflate" Command="local:CustomCommands.NewGZip" InputGestureText="Ctrl + D"></MenuItem>
+                    <MenuItem x:Name="Deflate" Header="Zip Deflate" Command="Paste" InputGestureText="Ctrl + D"></MenuItem>
                     <Separator></Separator>
-                    <MenuItem x:Name="Extract" Header="Extract" Command="local:CustomCommands.ExtractTo" InputGestureText="Ctrl + T"></MenuItem>
+                    <MenuItem x:Name="Extract" Header="Extract" Command="SaveAs" InputGestureText="Ctrl + T"></MenuItem>
                     <Separator></Separator>
                     <MenuItem Name="open_m" Header="_Show in explorer" Command="Open" InputGestureText="Ctrl + O"></MenuItem>
-                    <MenuItem Name="delete_m" Header="_Delete" Command="Delete" InputGestureText="Delete" ></MenuItem>
+                    <MenuItem Name="DeleteM" Header="_Delete" Command="Delete" InputGestureText="Delete" ></MenuItem>
                 </ContextMenu>
             </ListView.ContextMenu>
             <ListView.View>
@@ -90,14 +89,14 @@
             </Button.Content>
         </Button>
 
-        <ProgressBar x:Name="loading" Grid.Column="2" Margin="51,0,130,1"/>
+        <ProgressBar x:Name="loading" Grid.Row="0" Grid.Column="2" Margin="51,0,130,1"/>
 
-        <TreeView VirtualizingPanel.VirtualizationMode="Recycling" x:Name="foldersItem" Grid.Column="0" SelectedItemChanged="foldersItem_SelectedItemChanged" Grid.RowSpan="3" Grid.Row="1">
+        <TreeView VirtualizingPanel.VirtualizationMode="Recycling" x:Name="FoldersItem" Grid.Column="0" SelectedItemChanged="foldersItem_SelectedItemChanged" Grid.RowSpan="3" Grid.Row="1">
             <TreeView.Resources>
 
             </TreeView.Resources>
         </TreeView>
-        <Expander Header="Menu" x:Name="menu" Margin="0,-4,0,0" IsExpanded="False" ExpandDirection="Down" Grid.Column="2" Grid.RowSpan="2" Height="91" VerticalAlignment="Top" HorizontalAlignment="Right" Width="114">
+        <Expander Header="Menu" Background="White" x:Name="menu" Margin="0,-4,0,0" IsExpanded="False" ExpandDirection="Down" Grid.Column="2" Grid.RowSpan="2" Height="91" VerticalAlignment="Top" HorizontalAlignment="Right" Width="114">
             <Expander.Content>
                 <StackPanel x:Name="stacked" Orientation="Vertical" VerticalAlignment="Top" Visibility="Visible">
                     <Button x:Name="about" Margin="20,10,20,10" Height="30" Width="auto" Visibility="Visible" Content="About" Click="about_Click"/>

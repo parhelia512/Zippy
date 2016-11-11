@@ -1,11 +1,11 @@
-﻿<Controls:MetroWindow x:Class="Zippy.Dialogs.ProgressDialog"
+﻿<controls:MetroWindow x:Class="Zippy.Dialogs.ProgressDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Zippy.Dialogs"
         mc:Ignorable="d"
-        xmlns:Controls="http://metro.mahapps.com/winfx/xaml/controls"
+        xmlns:controls="http://metro.mahapps.com/winfx/xaml/controls"
      xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
      TextElement.Foreground="{DynamicResource MaterialDesignBody}"
      TextElement.FontWeight="Regular"
@@ -25,4 +25,5 @@
         <TextBlock x:Name="Message" HorizontalAlignment="Center" TextWrapping="Wrap" Text="Extracting..." VerticalAlignment="Center" Grid.RowSpan="2"/>
 
     </Grid>
-</Controls:MetroWindow>
+</controls:MetroWindow>
+
