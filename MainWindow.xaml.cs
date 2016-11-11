@@ -65,11 +65,14 @@ namespace Zippy
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            //Clear the temporary directory
-            if(Directory.Exists(_temporaryDirectory))
+            if (!Directory.Exists(_temporaryDirectory))
             {
-                Directory.Delete(_temporaryDirectory, true);
                 Directory.CreateDirectory(_temporaryDirectory);
+            }
+            //Clear the temporary directory
+            foreach (var file in Directory.GetFiles(_temporaryDirectory))
+            {
+                File.Delete(file);
             }
             //Add the treeview items for every drive
             foreach (var s in Directory.GetLogicalDrives())
@@ -508,7 +511,29 @@ namespace Zippy
             if (e.LeftButton != MouseButtonState.Pressed ||
                 !(Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance) ||
                 !(Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)) return;
+            if (listView.SelectedItems.Count == 0)
+                return;
 
+            var files = new string[listView.SelectedItems.Count];
+            var ix = 0;
+            foreach (var nextSel in listView.SelectedItems)
+            {
+                if (!ArchiveMode)
+                {
+                    files[ix] = ((FileItem)nextSel).Path;
+                }
+                else
+                {
+                    var fileItem = ((FileItem)nextSel);
+                    var path = Path.Combine(_temporaryDirectory, ((IArchiveEntry)fileItem.Entry).Key);
+                    ExtractFileItem(_temporaryDirectory, fileItem);
+                    files[ix] = path;
+                }
+                ix++;
+            }
+            var dataFormat = DataFormats.FileDrop;
+            var dataObject = new DataObject(dataFormat, files);
+            DragDrop.DoDragDrop(listView, dataObject, DragDropEffects.Copy);
         }
 
         private void listView_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -711,29 +736,7 @@ namespace Zippy
 
         private void listView_DragLeave(object sender, DragEventArgs e)
         {
-            if (listView.SelectedItems.Count == 0)
-                return;
 
-            var files = new string[listView.SelectedItems.Count];
-            var ix = 0;
-            foreach (var nextSel in listView.SelectedItems)
-            {
-                if (!ArchiveMode)
-                {
-                    files[ix] = ((FileItem)nextSel).Path;
-                }
-                else
-                {
-                    var fileItem = ((FileItem)nextSel);
-                    var path = Path.Combine(_temporaryDirectory, ((IArchiveEntry)fileItem.Entry).Key);
-                    ExtractFileItem(_temporaryDirectory, fileItem);
-                    files[ix] = path;
-                }
-                ix++;
-            }
-            var dataFormat = DataFormats.FileDrop;
-            var dataObject = new DataObject(dataFormat, files);
-            DragDrop.DoDragDrop(listView, dataObject, DragDropEffects.Copy);
         }
     }
 }
