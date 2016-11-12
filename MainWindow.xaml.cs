@@ -239,7 +239,7 @@ namespace Zippy
             item.Items.Clear();
             try
             {
-                foreach (var s in Directory.GetDirectories(item.Tag.ToString()).Where(d => new DirectoryInfo(d).Attributes.HasFlag(FileAttributes.Hidden)))
+                foreach (var s in Directory.GetDirectories(item.Tag.ToString()).Where(d => !new DirectoryInfo(d).Attributes.HasFlag(FileAttributes.Hidden)))
                 {
                     var subitem = new TreeViewItem
                     {
