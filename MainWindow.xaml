@@ -97,10 +97,11 @@
 
             </TreeView.Resources>
         </TreeView>
-        <Expander Header="Menu" Background="White" x:Name="menu" Margin="0,-4,0,0" IsExpanded="False" ExpandDirection="Down" Grid.Column="2" Grid.RowSpan="2" Height="91" VerticalAlignment="Top" HorizontalAlignment="Right" Width="114">
+        <Expander Header="Menu" Background="White" x:Name="menu" Margin="0,-29,0,0" IsExpanded="False" ExpandDirection="Down" Grid.Column="2" Grid.RowSpan="2" Height="189" VerticalAlignment="Top" HorizontalAlignment="Right" Width="125">
             <Expander.Content>
-                <StackPanel x:Name="stacked" Orientation="Vertical" VerticalAlignment="Top" Visibility="Visible">
-                    <Button x:Name="about" Margin="20,10,20,10" Height="30" Width="auto" Visibility="Visible" Content="About" Click="about_Click"/>
+                <StackPanel x:Name="Stacked" Orientation="Vertical" VerticalAlignment="Top" Visibility="Visible">
+                    <Button x:Name="About" Margin="20,10,20,10" Height="30" Width="auto" Visibility="Visible" Content="About" Click="about_Click"/>
+                    <Button x:Name="Settings" Margin="20,10,20,10" Height="30" Width="auto" Visibility="Visible" Content="Settings" Click="Settings_OnClick"/>
                 </StackPanel>
             </Expander.Content>
         </Expander>

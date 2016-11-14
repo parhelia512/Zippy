@@ -786,5 +786,10 @@ namespace Zippy
         {
 
         }
+
+        private void Settings_OnClick(object sender, RoutedEventArgs e)
+        {
+            new Settings().ShowDialog();
+        }
     }
 }
