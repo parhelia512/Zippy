@@ -747,8 +747,10 @@ namespace Zippy
             switch (e.Key)
             {
                 case Key.Back:
+                case Key.Left:
                     folder_up.PerformClick();
                     break;
+                case Key.Right:
                 case Key.Enter:
                     if (listView.SelectedIndex > -1)
                     {
