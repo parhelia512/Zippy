@@ -15,11 +15,12 @@
      TextElement.FontSize="13"
      TextOptions.TextFormattingMode="Ideal"
      TextOptions.TextRenderingMode="Auto"
+    KeyDown="MainWindow_OnKeyDown"
     MinHeight="300"
     MinWidth="400"
         mc:Ignorable="d"
         Icon="Zippy.ico"
-        Title="Zippy" Height="600" Width="825" Loaded="Window_Loaded" ResizeMode="CanResizeWithGrip">
+        Title="Zippy" Height="600" Width="825" Loaded="Window_Loaded" ResizeMode="CanResizeWithGrip" MouseDown="Window_MouseDown">
     <Window.CommandBindings>
         <CommandBinding x:Name="newZip" Command="New" Executed="newZip_Executed" CanExecute="OutArchive_CanExecute" />
         <CommandBinding x:Name="newZipG" Command="Paste" Executed="newZipG_Executed" CanExecute="OutArchive_CanExecute"  />

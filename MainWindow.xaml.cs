@@ -25,6 +25,7 @@ using SharpCompress.Common;
 using SharpCompress.Readers;
 using SharpCompress.Writers;
 using Zippy.Dialogs;
+using Zippy.Models;
 using Zippy.Utils;
 using Image = System.Windows.Controls.Image;
 using Point = System.Windows.Point;
@@ -737,6 +738,49 @@ namespace Zippy
         }
 
         private void listView_DragLeave(object sender, DragEventArgs e)
+        {
+
+        }
+
+        private void MainWindow_OnKeyDown(object sender, KeyEventArgs e)
+        {
+            switch (e.Key)
+            {
+                case Key.Back:
+                    folder_up.PerformClick();
+                    break;
+                case Key.Enter:
+                    if (listView.SelectedIndex > -1)
+                    {
+                        listView.PerformDoubleClick();
+                    }
+                    e.Handled = true;
+                    break;
+                case Key.Down:
+                    if (listView.SelectedIndex == -1)
+                    {
+                        listView.SelectedIndex = 0;
+                    }
+                    else
+                    {
+                        var i = listView.SelectedIndex;
+                        listView.SelectedIndex = i != listView.Items.Count - 1? ++i : 0;
+                    }
+                    break;
+                case Key.Up:
+                    if (listView.SelectedIndex == -1)
+                    {
+                        listView.SelectedIndex = 0;
+                    }
+                    var ix = listView.SelectedIndex;
+                    listView.SelectedIndex = ix != 0 ? --ix : 0;
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
 
         }

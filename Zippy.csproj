@@ -122,6 +122,8 @@
     <Compile Include="Dialogs\ProgressDialog.xaml.cs">
       <DependentUpon>ProgressDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Models\ButtonExt.cs" />
+    <Compile Include="Models\ListViewExt.cs" />
     <Compile Include="Models\Themes.cs" />
     <Compile Include="Utils\ArchiveTypes.cs" />
     <Compile Include="Utils\ImageUtilities.cs" />
