@@ -1,92 +1,181 @@
-<html>
-<head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="//cdn.muicss.com/mui-0.9.4/css/mui.min.css" rel="stylesheet" type="text/css"/>
-    <script src="//cdn.muicss.com/mui-0.9.4/js/mui.min.js"></script>
-    <style>
-        /**
- * Body CSS
- */
-        html,
-        body {
-            height: 100%;
-        }
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="utf-8">
+  <title>Zippy | An Archiving Tool</title>
+  <meta name="keywords" content="">
+  <meta name="description" content="">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  
+  <meta property="og:title" content="">
+	<meta property="og:type" content="website">
+	<meta property="og:url" content="">
+	<meta property="og:site_name" content="">
+	<meta property="og:description" content="">
 
-        html,
-        body,
-        input,
-        textarea,
-        buttons {
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.004);
-        }
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/font-awesome.min.css">
+  <link rel="stylesheet" href="css/animate.css">
+  <link href='http://fonts.googleapis.com/css?family=Raleway:400,100,200,300,500,600,700,800,900|Montserrat:400,700' rel='stylesheet' type='text/css'>
+  
 
-        /**
-         * Header CSS
-         */
-        header {
-            position: fixed;
-            top: 0;
-            right: 0;
-            left: 0;
-            z-index: 2;
-        }
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/main.css">
 
-        /**
-         * Content CSS
-         */
-        #content-wrapper {
-            min-height: 100%;
-
-            /* sticky footer */
-            margin-bottom: -100px;
-            padding-bottom: 100px;
-        }
-
-        /**
-         * Footer CSS
-         */
-        footer {
-            height: 100px;
-            background-color: #eee;
-            border-top: 1px solid #e0e0e0;
-            padding-top: 35px;
-        }
-    </style>
+  <script src="js/modernizr-2.7.1.js"></script>
+  
 </head>
+
 <body>
-<header class="mui-appbar mui--z1">
-    <div class="mui-container">
-        <table width="100%">
-            <tr class="mui--appbar-height">
-                <td class="mui--text-title">Brand.io</td>
-                <td align="right">
-                    <ul class="mui-list--inline mui--text-body2">
-                        <li><a href="#">About</a></li>
-                        <li><a href="#">Pricing</a></li>
-                        <li><a href="#">Login</a></li>
-                    </ul>
-                </td>
-            </tr>
-        </table>
+
+    
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="logo" href="index.html"><img style="width: 150px;" src="img/logo.svg" alt="Logo"></a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="#main-info" class="scroll">Features</a></li>
+            <li><a href="https://github.com/danielverh/Zippy">Visit on GitHub</a></li>
+          </ul>
+        </div><!--/.navbar-collapse -->
+      </div>
     </div>
-</header>
-<div id="content-wrapper" class="mui--text-center">
-    <div class="mui--appbar-height"></div>
-    <br>
-    <br>
-    <div class="mui--text-display3">Brand.io</div>
-    <br>
-    <br>
-    <button class="mui-btn mui-btn--raised">Get started</button>
-</div>
-<footer>
-    <div class="mui-container mui--text-center">
-        Made with ♥ by <a href="https://www.muicss.com">MUICSS</a>
-    </div>
-</footer>
-</body>
+        
+    <header>
+      <div class="container">
+        <div class="row">
+          <div class="col-xs-6">
+            <a href="index.html"><img style="width: 150px;" src="img/logo.svg" alt="Logo"></a>
+          </div>
+          <div class="col-xs-6 signin text-right navbar-nav">
+            <a href="#main-info" class="scroll">Features</a>&nbsp; &nbsp;<a href="https://github.com/danielverh/Zippy">Visit on GitHub</a>
+          </div>
+        </div>
+        
+        <div class="row header-info">
+          <div class="col-sm-10 col-sm-offset-1 text-center">
+            <h1 class="wow fadeIn">Zippy, free zipping</h1>
+            <br />
+            <p class="lead wow fadeIn" data-wow-delay="0.5s"><b>Zippy</b> is a free and open source archiving tool for windows, made in <b>.NET</b></p>
+            <br />
+              
+            <div class="row">
+              <div class="col-md-8 col-md-offset-2 col-sm-10 col-sm-offset-1">
+                <div class="row">
+                  <div class="col-xs-6 text-right wow fadeInUp" data-wow-delay="1s">
+                    <a href="#be-the-first" class="btn btn-secondary btn-lg scroll">Learn More</a>
+                  </div>
+                  <div class="col-xs-6 text-left wow fadeInUp" data-wow-delay="1.4s">
+                    <a href="#invite" class="btn btn-primary btn-lg scroll">Download Now!</a>
+                  </div>
+                </div><!--End Button Row-->  
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </header>
+    
+    <div class="mouse-icon hidden-xs">
+				<div class="scroll"></div>
+			</div>
+    
+    <section id="be-the-first" class="pad-xl">
+      <div class="container">
+        <div class="row">
+          <div class="col-sm-8 col-sm-offset-2 text-center margin-30 wow fadeIn" data-wow-delay="0.6s">
+            <h2>Zippy, an Open Source archiving tool</h2>
+            <p class="lead">Zippy is an open source archiving tool/zipper for Windows.</p>
+          </div>
+        </div>
+        
+        <div class="iphone wow fadeInUp" data-wow-delay="1s">
+	        <img src="img/demo.png">
+        </div>
+      </div>
+    </section>
+    
+    <section id="main-info" class="pad-xl">
+	    <div class="container">
+		    <div class="row">
+			    <div class="col-sm-3 wow fadeIn" data-wow-delay="0.4s">
+				    <hr class="line">
+				    <h3>Windows Integration</h3>
+				    <p>Zippy uses the windows context menu for quick archive and extract options!</p>
+			    </div>
+			    <div class="col-sm-3 wow fadeIn" data-wow-delay="0.8s">
+				    <hr  class="line purple">
+				    <h3>We ♥ Open Source</h3>
+				    <p>Licensed under MIT!</p>
+			    </div>
+			    <div class="col-sm-3 wow fadeIn" data-wow-delay="1.2s">
+				    <hr  class="line blue">
+				    <h3>Native compression</h3>
+				    <p>Native compressing with LZMA/LZMA2, which results in small zips!</p>
+			    </div>
+                <div class="col-sm-3 wow fadeIn" data-wow-delay="1.4s">
+				    <hr  class="line yellow">
+				    <h3>Smaller Is Better</h3>
+				    <p>Zippy does everything it can to make you're files smaller!</p>
+			    </div>
+		    </div>
+	    </div>
+    </section>
+        
+
+    
+    
+    <section id="invite" class="pad-lg light-gray-bg">
+      <div class="container">
+        <div class="row">
+          <div class="col-sm-8 col-sm-offset-2 text-center">
+            <i class="fa fa-download-o margin-40"></i>
+            <h2 class="black">Get it now</h2>
+            <br />
+            <p class="black">Go to GitHub Releases to get the latest version.</p>
+            <br />
+            
+            <div class="row">
+              <div class="col-sm-8 col-sm-offset-2 col-md-6 col-md-offset-3">
+                <form role="form" action="https://github.com/danielverh/Zippy/releases">
+                  <button type="submit" class="btn btn-primary btn-lg">Download now</button>
+                </form>
+              </div>
+            </div><!--End Form row-->
+
+          </div>
+        </div>
+      </div>
+    </section>
+    
+    <footer>
+      <div class="container">
+          <div class="col-sm-12 text-center">
+            <p><small>Copyright OmegApps &copy; 2016. All rights reserved. <br>
+	            Created by <a href="http://visualsoldiers.com">Visual Soldiers</a></small></p>
+          </div>
+        </div>
+        
+      </div>
+    </footer>
+    
+    
+    <!-- Javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <script>window.jQuery || document.write('<script src="js/jquery-1.11.0.min.js"><\/script>')</script>
+    <script src="js/wow.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/main.js"></script>
+
+   
+    </body>
 </html>
