@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
@@ -11,6 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -101,6 +103,7 @@ namespace Zippy
             item2.Items.Add(DummyNode);
             item2.Expanded += folder_Expanded;
             item2.IsSelected = true;
+
             FoldersItem.Items.Add(item2);
             //Checks if Zippy has command line args, and if so, it uses them:
             var args = Environment.GetCommandLineArgs();
@@ -803,6 +806,11 @@ namespace Zippy
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
 
+        }
+
+        private void CommandBinding_OnExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            SelectFolder(pathBox.Text);
         }
     }
 }

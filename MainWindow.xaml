@@ -27,6 +27,7 @@
         <CommandBinding x:Name="delete" Command="Delete" Executed="delete_Executed"/>
         <CommandBinding x:Name="ExtractFileItemTo" Command="SaveAs" CanExecute="extractTo_CanExecute" Executed="extractTo_Executed"/>
         <CommandBinding x:Name="open" Command="Open" Executed="open_Executed" CanExecute="OutArchive_CanExecute"/>
+        <CommandBinding x:Name="refresh" Command="Refresh" Executed="CommandBinding_OnExecuted"/>
     </Window.CommandBindings>
     <Window.InputBindings>
         <KeyBinding Key="N" Modifiers="Ctrl" Command="New"/>
@@ -34,6 +35,7 @@
         <KeyBinding Key="D" Modifiers="Ctrl" Command="Paste"/>
         <KeyBinding Key="O" Modifiers="Ctrl" Command="Open"/>
         <KeyBinding Key="Delete" Command="Delete"/>
+        <KeyBinding Key="F5" Command="Refresh"/>
     </Window.InputBindings>
 
     <Grid>
@@ -59,6 +61,7 @@
                     <Separator></Separator>
                     <MenuItem Name="open_m" Header="_Show in explorer" Command="Open" InputGestureText="Ctrl + O"></MenuItem>
                     <MenuItem Name="DeleteM" Header="_Delete" Command="Delete" InputGestureText="Delete" ></MenuItem>
+                    <MenuItem Name="_Refresh" Header="_Refresh" Command="Refresh" InputGestureText="F5" ></MenuItem>
                 </ContextMenu>
             </ListView.ContextMenu>
             <ListView.View>
