@@ -49,7 +49,7 @@
             <ColumnDefinition Width="149*" />
         </Grid.ColumnDefinitions>
 
-        <ListView x:Name="listView" Grid.Column="2" MouseDoubleClick="listView_MouseDoubleClick"  MouseMove="listView_MouseMove" PreviewMouseLeftButtonDown="listView_PreviewMouseLeftButtonDown" Grid.Row="1" Grid.RowSpan="3" DragLeave="listView_DragLeave">
+        <ListView x:Name="FileList" Grid.Column="2" MouseDoubleClick="listView_MouseDoubleClick"  MouseMove="listView_MouseMove" PreviewMouseLeftButtonDown="listView_PreviewMouseLeftButtonDown" Grid.Row="1" Grid.RowSpan="3" DragLeave="listView_DragLeave">
             <ListView.ContextMenu>
                 <ContextMenu>
                     <MenuItem Header="_Zip (Recommended)" Command="New" InputGestureText="Ctrl + N"></MenuItem>
@@ -73,6 +73,8 @@
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
                     <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="150"/>
+                    <GridViewColumn Header="Size" DisplayMemberBinding="{Binding Size}" Width="80"/>
+                    <GridViewColumn Header="Created On" DisplayMemberBinding="{Binding Created}" Width="120"/>
                     <GridViewColumn Header="Path" DisplayMemberBinding="{Binding Path}" Width="250"/>
                 </GridView>
             </ListView.View>

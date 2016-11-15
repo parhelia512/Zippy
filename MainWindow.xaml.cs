@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -39,6 +40,7 @@ namespace Zippy
     /// </summary>
     public partial class MainWindow
     {
+        private int previousFileIndex = 0;
         private const string DummyNode = "none";
         private readonly string _temporaryDirectory;
         private string _archivePath;
@@ -318,11 +320,12 @@ namespace Zippy
         {
             if (Directory.Exists(path))
             {
+                previousFileIndex = FileList.SelectedIndex;
                 SelectFolder(path);
             }
             else if (_type != ArchiveTypes.None)
             {
-                listView.Items.Clear();
+                FileList.Items.Clear();
                 var archive = ArchiveFactory.Open(path);
                 _archivePath = path;
                 archive.Entries.ToList().ForEach(delegate (IArchiveEntry values)
@@ -330,7 +333,7 @@ namespace Zippy
                     var extension = "." + values.Key.Split('.').Last();
                     var isDir = values.IsDirectory;
                     var exePath = IconManager.FindIconForFilename(extension, false);
-                    listView.Items.Add(new FileItem(exePath) { Name = values.Key, Entry = values, IsDir = isDir });
+                    FileList.Items.Add(new FileItem(exePath) { Name = values.Key, Entry = values, IsDir = isDir });
                 });
                 ArchiveMode = true;
             }
@@ -345,20 +348,11 @@ namespace Zippy
             var strExePath = "C:\\Windows";
             try
             {
-                //We need a leading dot, so add it if it's missing.
                 if (!strExtension.StartsWith(".")) strExtension = "." + strExtension;
-
-                //Get the class-name associated with the passed extension
                 var rkClassName
                     = Registry.ClassesRoot.OpenSubKey(strExtension);
-                //Exit, if not found
                 if (rkClassName == null) return string.Empty;
                 var strClassName = rkClassName.GetValue("").ToString();
-
-                //Get the shell-command for the retrieved executable 
-                //This key is found at HKCR\[ClassName]\shell\open\command\(Default)
-                //One or more of the paths may be missing, so each of them is being tested
-                //separately.
                 var rkShellCommandRoot
                     = Registry.ClassesRoot.OpenSubKey(strClassName);
 
@@ -374,9 +368,6 @@ namespace Zippy
                 if (rkCommand == null) return string.Empty;
 
                 var strShellCommand = rkCommand.GetValue("").ToString();
-
-                //The shell-command may contain additional parameters and may be wrapped in double quotes,
-                //so parse out the exe-path.
                 strExePath = strShellCommand.StartsWith(@"")
                     ? strShellCommand.Split('"')[1]
                     : strShellCommand.Split(' ')[0];
@@ -391,7 +382,7 @@ namespace Zippy
 
         public void ZipSelected(ArchiveTypes type, WriterOptions options1 = null)
         {
-            var items = listView.SelectedItems;
+            var items = FileList.SelectedItems;
             Zip(type, options1, items);
         }
 
@@ -476,7 +467,7 @@ namespace Zippy
         public void SelectFolder(string path)
         {
             if (!Directory.Exists(path)) return;
-            listView.Visibility = Visibility.Hidden;
+            FileList.Visibility = Visibility.Hidden;
             new Thread(delegate ()
             {
                 var nodes = path.Split('\\');
@@ -502,7 +493,14 @@ namespace Zippy
                         });
                     }
                 }
-                listView.Dispatcher.Invoke(delegate { listView.Visibility = Visibility.Visible; });
+                FileList.Dispatcher.Invoke(delegate
+                {
+                    if (previousFileIndex < FileList.Items.Count)
+                    {
+                        FileList.SelectedIndex = previousFileIndex;
+                    }
+                    FileList.Visibility = Visibility.Visible;
+                });
             }).Start();
         }
 
@@ -514,12 +512,12 @@ namespace Zippy
             if (e.LeftButton != MouseButtonState.Pressed ||
                 !(Math.Abs(diff.X) > SystemParameters.MinimumHorizontalDragDistance) ||
                 !(Math.Abs(diff.Y) > SystemParameters.MinimumVerticalDragDistance)) return;
-            if (listView.SelectedItems.Count == 0)
+            if (FileList.SelectedItems.Count == 0)
                 return;
 
-            var files = new string[listView.SelectedItems.Count];
+            var files = new string[FileList.SelectedItems.Count];
             var ix = 0;
-            foreach (var nextSel in listView.SelectedItems)
+            foreach (var nextSel in FileList.SelectedItems)
             {
                 if (!ArchiveMode)
                 {
@@ -536,7 +534,7 @@ namespace Zippy
             }
             var dataFormat = DataFormats.FileDrop;
             var dataObject = new DataObject(dataFormat, files);
-            DragDrop.DoDragDrop(listView, dataObject, DragDropEffects.Copy);
+            DragDrop.DoDragDrop(FileList, dataObject, DragDropEffects.Copy);
         }
 
         private void listView_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -551,14 +549,14 @@ namespace Zippy
             {
                 var path = ((TreeViewItem)FoldersItem.SelectedItem).Tag.ToString();
                 pathBox.Text = path;
-                listView.Items.Clear();
+                FileList.Items.Clear();
                 Directory.GetDirectories(path)
                     .Where(d => !new DirectoryInfo(d).Attributes.HasFlag(FileAttributes.Hidden))
                     .ToList()
                     .ForEach(
                         delegate (string s)
                         {
-                            listView.Items.Add(new FileItem(s) { Name = new FileInfo(s).Name, Path = s });
+                            FileList.Items.Add(new FileItem(s) { Name = new FileInfo(s).Name, Path = s });
                         });
                 Directory.GetFiles(path)
                     .Where(f => !new FileInfo(f).Attributes.HasFlag(FileAttributes.Hidden))
@@ -566,7 +564,7 @@ namespace Zippy
                     .ForEach(
                         delegate (string s)
                         {
-                            listView.Items.Add(new FileItem(s) { Name = new FileInfo(s).Name, Path = s });
+                            FileList.Items.Add(new FileItem(s) { Name = new FileInfo(s).Name, Path = s });
                         });
             }
             catch
@@ -611,7 +609,7 @@ namespace Zippy
 
         private void delete_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            var items = listView.SelectedItems;
+            var items = FileList.SelectedItems;
             if (items.Count <= 0) return;
             if (ArchiveMode)
             {
@@ -643,9 +641,9 @@ namespace Zippy
 
         private void open_Executed(object sender, ExecutedRoutedEventArgs e)
         {
-            if (listView.SelectedItem != null)
+            if (FileList.SelectedItem != null)
             {
-                string args = $"/e, /select, \"{((FileItem)listView.SelectedItem).Path}\"";
+                string args = $"/e, /select, \"{((FileItem)FileList.SelectedItem).Path}\"";
 
                 var info = new ProcessStartInfo
                 {
@@ -662,13 +660,13 @@ namespace Zippy
 
         private void OutArchive_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            if (!ArchiveMode && listView.SelectedIndex != -1)
+            if (!ArchiveMode && FileList.SelectedIndex != -1)
                 e.CanExecute = true;
         }
 
         private void extractTo_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            if (ArchiveMode && listView.SelectedIndex != -1)
+            if (ArchiveMode && FileList.SelectedIndex != -1)
                 e.CanExecute = true;
         }
 
@@ -678,7 +676,7 @@ namespace Zippy
 
             dialog.ShowDialog();
             if (!Directory.Exists(dialog.FileName)) return;
-            foreach (FileItem item in listView.SelectedItems)
+            foreach (FileItem item in FileList.SelectedItems)
                 ExtractFileItem(dialog.FileName, item);
             SelectFolder(dialog.FileName);
         }
@@ -723,6 +721,15 @@ namespace Zippy
                 Icon = Imaging.CreateBitmapSourceFromHBitmap(
                     ImageUtilities.GetRegisteredIcon(path).ToBitmap().GetHbitmap(), IntPtr.Zero, Int32Rect.Empty,
                     BitmapSizeOptions.FromEmptyOptions());
+                if (File.Exists(path))
+                {
+                    Size = GetDynamicBytes(path);
+                    Created = new FileInfo(path).CreationTime.ToString(CultureInfo.InvariantCulture);
+                }
+                else if (Directory.Exists(path))
+                {
+                    Created = new FileInfo(path).CreationTime.ToString(CultureInfo.InvariantCulture);
+                }
             }
 
             public FileItem(ImageSource src)
@@ -735,8 +742,21 @@ namespace Zippy
             public string Path { get; set; }
             public object Entry { get; set; }
             public bool IsDir { get; set; }
+            public string Size { get; set; }
+            public string Created { get; set; }
         }
 
+        public static string GetDynamicBytes(string filename)
+        {
+            var sizes = new string[]{ "b", "Kb", "Mb", "Gb" };
+            double length = new FileInfo(filename).Length;
+            int i = 0;
+            while (length >= 1024 && ++i < sizes.Length)
+            {
+                length = length / 1024;
+            }
+            return $"{length:0.##} {sizes[i]}";
+        }
         private void listView_DragLeave(object sender, DragEventArgs e)
         {
 
@@ -752,32 +772,30 @@ namespace Zippy
                     break;
                 case Key.Right:
                 case Key.Enter:
-                    if (listView.SelectedIndex > -1)
+                    if (FileList.SelectedIndex > -1)
                     {
-                        listView.PerformDoubleClick();
+                        FileList.PerformDoubleClick();
                     }
                     e.Handled = true;
                     break;
                 case Key.Down:
-                    if (listView.SelectedIndex == -1)
+                    if (FileList.SelectedIndex == -1)
                     {
-                        listView.SelectedIndex = 0;
+                        FileList.SelectedIndex = 0;
                     }
                     else
                     {
-                        var i = listView.SelectedIndex;
-                        listView.SelectedIndex = i != listView.Items.Count - 1? ++i : 0;
+                        var i = FileList.SelectedIndex;
+                        FileList.SelectedIndex = i != FileList.Items.Count - 1? ++i : 0;
                     }
                     break;
                 case Key.Up:
-                    if (listView.SelectedIndex == -1)
+                    if (FileList.SelectedIndex == -1)
                     {
-                        listView.SelectedIndex = 0;
+                        FileList.SelectedIndex = 0;
                     }
-                    var ix = listView.SelectedIndex;
-                    listView.SelectedIndex = ix != 0 ? --ix : 0;
-                    break;
-                default:
+                    var ix = FileList.SelectedIndex;
+                    FileList.SelectedIndex = ix != 0 ? --ix : 0;
                     break;
             }
         }
