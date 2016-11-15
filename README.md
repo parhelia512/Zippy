@@ -1,5 +1,6 @@
 # Zippy
 Zippy windows zip tool
+[Website](https://danielverh.github.io/Zippy/)
 
 ## Features
 - Sleek Material Design
