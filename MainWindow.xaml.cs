@@ -756,12 +756,12 @@ namespace Zippy
                 length = length / 1024;
             }
             return $"{length:0.##} {sizes[i]}";
+            
         }
         private void listView_DragLeave(object sender, DragEventArgs e)
         {
-
+            
         }
-
         private void MainWindow_OnKeyDown(object sender, KeyEventArgs e)
         {
             switch (e.Key)
